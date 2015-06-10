@@ -1,68 +1,84 @@
 <?php
-function check_login($link, $user, $pass) {
-	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user))) {
+function check_login($link, $user, $pass)
+{
+	if(!ctype_alnum(str_replace(['@', '.', '-'], '', $user)))
+	{
 		return false;
 	}
+
 	$pass = escapeshellcmd($pass);
-	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='1' AND username='$user'");
-	while ($row = mysqli_fetch_array($result, MYSQL_NUM)) {
+	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='1' AND username='".$user."'");
+
+	while($row = mysqli_fetch_array($result, MYSQL_NUM))
+	{
 		$row = "'".$row[0]."'";
-		if (strpos(shell_exec("echo $pass | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false) {
+		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t ".$row.""), "verified") !== false)
+		{
 			return "admin";
 		}
 	}
-	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='0' AND active='1' AND username='$user'");
-	while ($row = mysqli_fetch_array($result, MYSQL_NUM)) {
+
+	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='0' AND active='1' AND username='".$user."'");
+	
+	while($row = mysqli_fetch_array($result, MYSQL_NUM))
+	{
 		$row = "'".$row[0]."'";
-		if (strpos(shell_exec("echo $pass | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false) {
+		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false)
+		{
 			return "domainadmin";
 		}
 	}
-	$result = mysqli_query($link, "SELECT password FROM mailbox WHERE active='1' AND username='$user'");
-	while ($row = mysqli_fetch_array($result, MYSQL_NUM)) {
+
+	$result = mysqli_query($link, "SELECT password FROM mailbox WHERE active='1' AND username='".$user."'");
+	while($row = mysqli_fetch_array($result, MYSQL_NUM)) {
 		$row = "'".$row[0]."'";
-		if (strpos(shell_exec("echo $pass | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false) {
+		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false)
+		{
 			return "user";
 		}
 	}
 	return false;
 }
-function formatBytes($size, $precision = 2) {
+
+function formatBytes($size, $precision = 2)
+{
 	$base = log($size, 1024);
-	$suffixes = array(' Byte', 'k', 'M', 'G', 'T');
-	if ($size == "0") {
-		return "0";
-	}
-	return round(pow(1024, $base - floor($base)), $precision) . $suffixes[floor($base)];
+	$suffixes = [' Byte', 'k', 'M', 'G', 'T'];
+	if($size == "0") return "0";
+	else return round(pow(1024, $base - floor($base)), $precision) . $suffixes[floor($base)];
 }
-function mysqli_result($res,$row=0,$col=0) { 
+
+function mysqli_result($res,$row=0,$col=0)
+{ 
     $numrows = mysqli_num_rows($res); 
-    if ($numrows && $row <= ($numrows-1) && $row >=0){
+    if($numrows && $row <= ($numrows-1) && $row >=0)
+    {
         mysqli_data_seek($res,$row);
-        $resrow = (is_numeric($col)) ? mysqli_fetch_row($res) : mysqli_fetch_assoc($res);
-        if (isset($resrow[$col])){
-            return $resrow[$col];
-        }
+        $resrow = (is_numeric($col) ? mysqli_fetch_row($res) : mysqli_fetch_assoc($res));
+        if(isset($resrow[$col])) return $resrow[$col];
     }
     return false;
 }
-function dl_clamav_positives() {
-	$files = scandir("/opt/vfilter/clamav_positives");
+function dl_clamav_positives()
+{
+	$files = scandir('/opt/vfilter/clamav_positives');
 	$files = array_diff($files, array('.', '..'));
-	if (empty($files)) { return false; }
-	$zipname = "/tmp/clamav_positives.zip";
+
+	if(empty($files)) return false;
+	$zipname = '/tmp/clamav_positives.zip';
 	$zip = new ZipArchive;
 	$zip->open($zipname, ZipArchive::CREATE);
-	foreach ($files as $file) {
-		$zip->addFile("/opt/vfilter/clamav_positives/$file", "$file" . ".txt");
+	foreach ($files as $file)
+	{
+		$zip->addFile('/opt/vfilter/clamav_positives/'.$file, $file.'.txt');
 	}
 	$zip->close();
-	header("Content-Disposition: attachment; filename=clamav_positives.zip");
-	header("Content-length: " . filesize("/tmp/clamav_positives.zip"));
-	header("Pragma: no-cache");
-	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-	header("Expires: 0");
-	readfile("/tmp/clamav_positives.zip");
+	header('Content-Disposition: attachment; filename=clamav_positives.zip');
+	header('Content-length: '.filesize('/tmp/clamav_positives.zip'));
+	header('Pragma: no-cache');
+	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+	header('Expires: 0');
+	readfile('/tmp/clamav_positives.zip');
 
 }
 function return_mailcow_config($s) {

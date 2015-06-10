@@ -19,23 +19,11 @@ require('library/common.php');
 if (basename($_SERVER['PHP_SELF']) == "mailbox.php") {
 ?>
 <style>
-.row{
-margin-top:40px;
-padding: 0 10px;
-}
-.clickable{
-cursor: pointer;
-}
-.panel-heading div {
-margin-top: -18px;
-font-size: 15px;
-}
-.panel-heading div span{
-margin-left:5px;
-}
-.panel-body{
-display: none;
-}
+.row { margin-top: 40px;	padding: 0 10px; }
+.clickable { cursor: pointer; }
+.panel-heading div { margin-top: -18px; font-size: 15px; }
+.panel-heading div span{ margin-left:5px; }
+.panel-body{ display: none; }
 </style>
 <?php
 }
@@ -127,14 +115,4 @@ a, a:hover, a:focus {
 		<a class="btn btn-material-grey" href="http://mxtoolbox.com/SuperTool.aspx?action=smtp:<?php echo HOSTNAME; ?>" target="_blank">Run &raquo;</a>
 		<br />
 </div> <!-- /container -->
-<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="<?php echo JS_ASSET_PATH; ?>ripples.min.js"></script>
-<script src="<?php echo JS_ASSET_PATH; ?>material.min.js"></script>
-<script>
-$(document).ready(function() {
-        $.material.init();
-});
-</script>
-</body>
-</html>
+<?php include(LIB_PATH.'includes/footer.php'); ?>
