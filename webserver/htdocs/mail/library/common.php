@@ -11,16 +11,10 @@ require('library/config.php');
 
 /* Databaseclass */
 require(LIB_PATH.'classes/medoo.min.php');
+require(LIB_PATH.'classes/core.class.php');
 
-/* Database Setup */
-$db = new medoo([
-	'database_type' => 'mysql',
-	'database_name' => MYSQL_DATABASE,
-	'server' => MYSQL_HOST,
-	'username' => MYSQL_USER,
-	'password' => MYSQL_PASSWORD,
-	'charset' => 'utf8'
-]);
+/* CoreClass */
+new Core(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE);
 
 /* Login */
 if (isset($_SESSION['mailcow_cc_loggedin']) && !empty($_SESSION['mailcow_cc_loggedin'])) {
@@ -31,7 +25,6 @@ else {
 	$logged_in_role = "";
 	$logged_in_as = "";
 }
-
 
 /* other settings */
 if (isset($_SERVER['SERVER_ADDR']))
@@ -54,4 +47,6 @@ elseif (!filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE))
 /* load other Actions */
 require(LIB_PATH.'includes/functions.php');
 require(LIB_PATH.'includes/trigger_actions.php');
+
+check_login('admin', 'demo');
 ?>
