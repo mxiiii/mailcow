@@ -1,45 +1,41 @@
 <?php
-function check_login($link, $user, $pass)
-{
-	if(!ctype_alnum(str_replace(['@', '.', '-'], '', $user)))
-	{
+function check_login($link, $user, $pass) {
+	global $database;
+	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user))) {
 		return false;
 	}
-
 	$pass = escapeshellcmd($pass);
-	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='1' AND username='".$user."'");
-
-	while($row = mysqli_fetch_array($result, MYSQL_NUM))
-	{
-		$row = "'".$row[0]."'";
-		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t ".$row.""), "verified") !== false)
-		{
-			return "admin";
-		}
+	$hash = $database->get("admin", "password", [
+		"AND" => [
+			"username" => $user,
+			"superadmin" => "1",
+			"active" => "1",
+		]
+	]);
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+		return "admin";
 	}
-
-	$result = mysqli_query($link, "SELECT password FROM admin WHERE superadmin='0' AND active='1' AND username='".$user."'");
-	
-	while($row = mysqli_fetch_array($result, MYSQL_NUM))
-	{
-		$row = "'".$row[0]."'";
-		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false)
-		{
-			return "domainadmin";
-		}
+	$hash = $database->get("admin", "password", [
+		"AND" => [
+			"username" => $user,
+			"superadmin" => "0",
+			"active" => "1",
+		]
+	]);
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+		return "domainadmin";
 	}
-
-	$result = mysqli_query($link, "SELECT password FROM mailbox WHERE active='1' AND username='".$user."'");
-	while($row = mysqli_fetch_array($result, MYSQL_NUM)) {
-		$row = "'".$row[0]."'";
-		if(strpos(shell_exec("echo ".$pass." | doveadm pw -s SHA512-CRYPT -t $row"), "verified") !== false)
-		{
-			return "user";
-		}
+	$hash = $database->get("mailbox", "password", [
+		"AND" => [
+			"username" => $user,
+			"active" => "1",
+		]
+	]);
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+		return "user";
 	}
 	return false;
 }
-
 function formatBytes($size, $precision = 2)
 {
 	$base = log($size, 1024);
