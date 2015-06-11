@@ -1,7 +1,9 @@
 <?php
-function check_login($link, $user, $pass) {
+function check_login($link, $user, $pass)
+{
 	global $db;
-	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user))) {
+	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user)))
+	{
 		return false;
 	}
 	$pass = escapeshellcmd($pass);
@@ -12,7 +14,8 @@ function check_login($link, $user, $pass) {
 			'active' => '1',
 		]
 	]);
-	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false)
+	{
 		return 'admin';
 	}
 	$hash = $database->get('admin', 'password', [
@@ -22,7 +25,8 @@ function check_login($link, $user, $pass) {
 			'active' => '1',
 		]
 	]);
-	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false)
+	{
 		return 'domainadmin';
 	}
 	$hash = $database->get('mailbox', 'password', [
@@ -31,7 +35,8 @@ function check_login($link, $user, $pass) {
 			'active' => '1',
 		]
 	]);
-	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
+	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false)
+	{
 		return 'user';
 	}
 	return false;
@@ -45,8 +50,8 @@ function formatBytes($size, $precision = 2)
 }
 
 function mysqli_result($res,$row=0,$col=0)
-{ 
-    $numrows = mysqli_num_rows($res); 
+{
+    $numrows = mysqli_num_rows($res);
     if($numrows && $row <= ($numrows-1) && $row >=0)
     {
         mysqli_data_seek($res,$row);
