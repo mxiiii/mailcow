@@ -1,7 +1,6 @@
 <?php
 function check_login($link, $user, $pass)
 {
-	global $db;
 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user)))
 	{
 		return false;
@@ -345,37 +344,49 @@ function postfix_reload() {
 	shell_exec("sudo /usr/sbin/postfix reload");
 }
 function mailbox_add_domain($link, $postarray) {
-	if ($_SESSION['mailcow_cc_role'] != "admin") {
+	extract($postarray);
+	if ($_SESSION['mailcow_cc_role'] != 'admin')
+	{
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
-	$domain = mysqli_real_escape_string($link, $postarray['domain']);
-	$description = mysqli_real_escape_string($link, $postarray['description']);
-	$aliases = mysqli_real_escape_string($link, $postarray['aliases']);
-	$mailboxes = mysqli_real_escape_string($link, $postarray['mailboxes']);
-	$maxquota = mysqli_real_escape_string($link, $postarray['maxquota']);
-	$quota = mysqli_real_escape_string($link, $postarray['quota']); 
-	if ($maxquota > $quota) {
+	if ($maxquota > $quota)
+	{
 		header("Location: do.php?event=".base64_encode("Max. size per mailbox can not be greater than domain quota"));
 		die("Max. size per mailbox can not be greater than domain quota");
 	}
-	if (isset($postarray['active']) && $postarray['active'] == "on") { $active = "1"; } else { $active = "0"; }
-	if (isset($postarray['backupmx']) && $postarray['backupmx'] == "on") { $backupmx = "1"; } else { $backupmx = "0"; }
-	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain))) {
+	isset($active) ? $active = '1' : $active = '0';
+	isset($backupmx) ? $backupmx = '1' : $backupmx = '0';
+	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)))
+	{
 		header("Location: do.php?event=".base64_encode("Domain name invalid"));
-		die("Domain name invalid");
+		die('Domain name invalid');
 	}
-	foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data) {
-		if (!is_numeric($data)) { 
-			header("Location: do.php?event=".base64_encode("'$data' is not numeric"));
-			die("'$data' is not numeric"); 
+	foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data)
+	{
+		if (!is_numeric($data))
+		{
+			header('Location: do.php?event='.base64_encode(''.$data.' is not numeric'));
+			die($data.' is not numeric');
 		}
 	}
-	$mystring = "INSERT INTO domain (domain, description, aliases, mailboxes, maxquota, quota, transport, backupmx, created, modified, active)
-		VALUES ('$domain', '$description', '$aliases', '$mailboxes', '$maxquota', '$quota', 'virtual', '$backupmx', now(), now(), '$active')";
-	if (!mysqli_query($link, $mystring)) {
-		header("Location: do.php?event=".base64_encode("Cannot add domain"));
-		die("Cannot add domain");
+	$link->insert('domain', [
+		'domain' => $domain,
+		'description' => $description,
+		'aliases' => $aliases,
+		'mailboxes' => $mailboxes,
+		'maxquota' => $maxquota,
+		'quota' => $quota,
+		'transport' => 'virtual',
+		'backupmx' => $backupmx,
+		'#created' => 'NOW()',
+		'#modified' => 'NOW()',
+		'active' => $active,
+	]);
+	if (!empty($link->error()[2]))
+	{
+		header('Location: do.php?event='.base64_encode($link->error()[2]));
+		die($link->error()[2]);
 	}
 	header('Location: do.php?return=success');
 }
