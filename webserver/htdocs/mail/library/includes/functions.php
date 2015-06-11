@@ -5,34 +5,34 @@ function check_login($link, $user, $pass) {
 		return false;
 	}
 	$pass = escapeshellcmd($pass);
-	$hash = $database->get("admin", "password", [
-		"AND" => [
-			"username" => $user,
-			"superadmin" => "1",
-			"active" => "1",
+	$hash = $database->get('admin', 'password', [
+		'AND' => [
+			'username' => $user,
+			'superadmin' => '1',
+			'active' => '1',
 		]
 	]);
 	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
-		return "admin";
+		return 'admin';
 	}
-	$hash = $database->get("admin", "password", [
-		"AND" => [
-			"username" => $user,
-			"superadmin" => "0",
-			"active" => "1",
+	$hash = $database->get('admin', 'password', [
+		'AND' => [
+			'username' => $user,
+			'superadmin' => '0',
+			'active' => '1',
 		]
 	]);
 	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
-		return "domainadmin";
+		return 'domainadmin';
 	}
-	$hash = $database->get("mailbox", "password", [
-		"AND" => [
-			"username" => $user,
-			"active" => "1",
+	$hash = $database->get('mailbox', 'password', [
+		'AND' => [
+			'username' => $user,
+			'active' => '1',
 		]
 	]);
 	if (strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\''), 'verified') !== false) {
-		return "user";
+		return 'user';
 	}
 	return false;
 }
