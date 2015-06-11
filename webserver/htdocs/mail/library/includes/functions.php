@@ -1,6 +1,6 @@
 <?php
 function check_login($link, $user, $pass) {
-	global $database;
+	global $db;
 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user))) {
 		return false;
 	}
