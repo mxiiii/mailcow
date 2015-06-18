@@ -12,6 +12,20 @@ require('library/config.php');
 /* Databaseclass */
 require(LIB_PATH.'classes/medoo.min.php');
 require(LIB_PATH.'classes/core.class.php');
+require(SMARTY_CLASS);
+
+/* Template Settings */
+$template = new Smarty;
+
+$template->setTemplateDir('templates/');
+$template->setCompileDir('templates_c/');
+$template->setConfigDir('configs/');
+$template->setCacheDir('cache/');
+
+$template->assign('hostname', HOSTNAME);
+$template->assign('css_asset_path', CSS_ASSET_PATH);
+$template->assign('js_asset_path', JS_ASSET_PATH);
+$template->assign('img_asset_path', IMG_ASSET_PATH);
 
 /* CoreClass */
 new Core(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE);
@@ -47,6 +61,4 @@ elseif (!filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE))
 /* load other Actions */
 require(LIB_PATH.'includes/functions.php');
 require(LIB_PATH.'includes/trigger_actions.php');
-
-check_login('admin', 'demo');
 ?>

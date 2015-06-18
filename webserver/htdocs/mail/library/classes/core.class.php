@@ -11,7 +11,7 @@ class Core extends medoo
 
 
 	/**
-	 * 
+	 *
 	 *
 	*/
 	public function __construct($mysql_host, $mysql_user, $mysql_password, $mysql_database)

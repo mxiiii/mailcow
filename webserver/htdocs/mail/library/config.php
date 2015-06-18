@@ -23,12 +23,16 @@ define('VT_ENABLE_UPLOAD', '/var/www/VT_ENABLE_UPLOAD');
 
 /* Paths */
 define('LIB_PATH', 'library/');
+define('VENDOR_PATH', LIB_PATH.'vendor/');
 define('ASSET_PATH', LIB_PATH.'assets/');
 define('CSS_ASSET_PATH', ASSET_PATH.'css/');
 define('JS_ASSET_PATH', ASSET_PATH.'js/');
 define('IMG_ASSET_PATH', ASSET_PATH.'img/');
 
-
 $hostname = exec("/usr/sbin/postconf -h myhostname");
 define('HOSTNAME', (!empty($hostname) ? $hostname : '127.0.0.1'));
+
+/* Plugins */
+define('SMARTY_VERSION', 'smarty-3.1.25');
+define('SMARTY_CLASS', VENDOR_PATH.SMARTY_VERSION.'/libs/Smarty.class.php');
 ?>
