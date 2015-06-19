@@ -8,6 +8,8 @@ class Core extends medoo
 {
 	public static $link = false;
 	public static $vars = [];
+	public static $controller = false;
+	public static $template = false;
 
 
 	/**

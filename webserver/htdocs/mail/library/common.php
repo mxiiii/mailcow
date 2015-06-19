@@ -12,6 +12,8 @@ require('library/config.php');
 /* Databaseclass */
 require(LIB_PATH.'classes/medoo.min.php');
 require(LIB_PATH.'classes/core.class.php');
+require(LIB_PATH.'classes/router.class.php');
+require(LIB_PATH.'classes/BaseController.class.php');
 require(SMARTY_CLASS);
 
 /* Template Settings */
@@ -29,6 +31,8 @@ $template->assign('img_asset_path', IMG_ASSET_PATH);
 
 /* CoreClass */
 new Core(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE);
+
+Core::$template = $template;
 
 /* Login */
 if (isset($_SESSION['mailcow_cc_loggedin']) && !empty($_SESSION['mailcow_cc_loggedin'])) {
@@ -61,4 +65,14 @@ elseif (!filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE))
 /* load other Actions */
 require(LIB_PATH.'includes/functions.php');
 require(LIB_PATH.'includes/trigger_actions.php');
+
+
+// $_SERVER validation
+if(isset($_SERVER['REQUEST_URI']))
+{
+	$_SERVER['REQUEST_URI'] = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING);
+}
+
+// Routes
+Router::addRoute('/', 'get', 'welcome', 'index');
 ?>

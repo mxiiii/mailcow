@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /
+
+#RewriteCond %{REQUEST_URI} !^.+\.(css|gif|jpg|png|pdf)$
+RewriteCond %{REQUEST_URI} !^/library/.*$ [NC]
+RewriteCond %{REQUEST_URI} !^/(index\.php)?$ [NC]
+RewriteRule ^.*$ /index.php [L]
