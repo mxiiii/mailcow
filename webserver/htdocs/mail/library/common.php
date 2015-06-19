@@ -73,6 +73,14 @@ if(isset($_SERVER['REQUEST_URI']))
 	$_SERVER['REQUEST_URI'] = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING);
 }
 
-// Routes
+/*
+ * Fügt eine Route dem System hinzu
+ *
+ * @param string PATH 			Pfad hinter der URL, wobei / als root gildet
+ * @param string POST/GET 		Methode mit auf die Geprüft werden soll
+ * @param string CONTROLLER 	Controller der aufgerufen werden soll
+ * @param string ACTION 		Action die im Controller aufgerufen werden soll
+ *
+*/
 Router::addRoute('/', 'get', 'welcome', 'index');
 ?>

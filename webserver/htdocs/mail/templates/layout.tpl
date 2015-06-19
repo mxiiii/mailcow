@@ -45,7 +45,5 @@ a, a:hover, a:focus {
 <body>
 
 {include file="navigation.tpl"}
-
 {include file="{$content}"}
-
 {include file="footer.tpl"}

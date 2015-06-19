@@ -1,7 +1,13 @@
 <?php
 class BaseController
 {
-	public function run($template)
+	
+	/**
+	 * Template darstellen
+	 * @param array Array mit den Daten der Route
+	 *
+	*/
+	public function show($template)
 	{
 		if(is_file(strtolower(TEMPLATE_PATH.$template['controller'].'/'.$template['action'].'.tpl')))
 		{

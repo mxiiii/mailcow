@@ -1,6 +1,4 @@
 <?php
-
-
 class Router {
 
 	private static $routes = [];
