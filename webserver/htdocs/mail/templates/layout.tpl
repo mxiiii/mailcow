@@ -16,11 +16,11 @@
 if (basename($_SERVER['PHP_SELF']) == "mailbox.php") {
 ?>
 <style>
-.row { margin-top: 40px;	padding: 0 10px; }
+/*.row { margin-top: 40px;	padding: 0 10px; }
 .clickable { cursor: pointer; }
 .panel-heading div { margin-top: -18px; font-size: 15px; }
 .panel-heading div span{ margin-left:5px; }
-.panel-body{ display: none; }
+.panel-body{ display: none; }*/
 </style>
 <?php
 }

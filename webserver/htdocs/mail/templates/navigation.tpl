@@ -18,7 +18,7 @@
 						{if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes")}
 							{if $logged_in_role == "admin" }
 								<li>
-									<a href="/admin.php">Administration</a>
+									<a href="/admin">Administration</a>
 								</li>
 							{/if}
 							
@@ -30,12 +30,12 @@
 
 							{if $logged_in_role == "user"}
 								<li>
-									<a href="/mailbox.php">User settings</a>
+									<a href="/mailbox">User settings</a>
 								</li>
 							{/if}
 						{else}
 							<li>
-								<a href="/admin.php">Login</a>
+								<a href="/admin">Login</a>
 							</li>
 						{/if}
 					</ul>

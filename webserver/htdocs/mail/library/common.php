@@ -28,6 +28,7 @@ $template->assign('hostname', HOSTNAME);
 $template->assign('css_asset_path', CSS_ASSET_PATH);
 $template->assign('js_asset_path', JS_ASSET_PATH);
 $template->assign('img_asset_path', IMG_ASSET_PATH);
+$template->assign('mc_mbox_backup', MC_MBOX_BACKUP);
 
 /* CoreClass */
 new Core(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE);
@@ -83,4 +84,5 @@ if(isset($_SERVER['REQUEST_URI']))
  *
 */
 Router::addRoute('/', 'get', 'welcome', 'index');
+Router::addRoute('/admin', 'get', 'admin', 'index');
 ?>

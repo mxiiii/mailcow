@@ -41,6 +41,7 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 			{
 
 				// Falls alles ok ist, Template darstellen
+				(new $controller)->$route['action']();
 				Core::$controller->show($route);
 			}
 			else
@@ -55,7 +56,7 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 	}
 	else
 	{
-		throw new Exception('1339: \''.$_SERVER['REQUEST_URI'].'\' Route not found');
+		throw new Exception('1339: \''.$_SERVER['REQUEST_METHOD'].' -> '.$_SERVER['REQUEST_URI'].'\' Route not found');
 	}
 }
 else

@@ -1,0 +1,20 @@
+<?php
+class AdminController extends BaseController
+{
+	public function index()
+	{
+
+		// Username Query
+		$username = Core::$link->select('admin', 'username', ['superadmin' => '1'])[0];
+		Core::$template->assign('username', $username);
+
+		// Domain Query
+		$domains = Core::$link->select('domain', 'domain');
+		Core::$template->assign('domains', $domains);
+
+		// Mailbox Query
+		$mailboxes = Core::$link->select('mailbox', 'username');
+		Core::$template->assign('mailboxes', $mailboxes);
+	}
+}
+?>
