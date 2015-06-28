@@ -85,4 +85,5 @@ if(isset($_SERVER['REQUEST_URI']))
 */
 Router::addRoute('/', 'get', 'welcome', 'index');
 Router::addRoute('/admin', 'get', 'admin', 'index');
+Router::addRoute('/save', 'post', 'admin', 'save', '/admin');
 ?>

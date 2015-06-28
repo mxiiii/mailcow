@@ -16,5 +16,10 @@ class AdminController extends BaseController
 		$mailboxes = Core::$link->select('mailbox', 'username');
 		Core::$template->assign('mailboxes', $mailboxes);
 	}
+
+	public function save()
+	{	
+		header('Location: /admin?save=ok');
+	}
 }
 ?>

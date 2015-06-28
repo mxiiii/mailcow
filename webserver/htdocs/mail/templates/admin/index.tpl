@@ -7,7 +7,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Administrators</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<input type="hidden" name="admin_user_now" value="{$username}">
 				
 				<div class="form-group">
@@ -44,7 +44,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Domain administrators</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<div class="table-responsive">
 					<table class="table table-striped" id="domainadminstable">
 						<thead>
@@ -64,7 +64,7 @@
 			
 			<small>
 				<h4>Add domain administrator</h4>
-				<form class="form-horizontal" role="form" method="post">
+				<form action="/save" class="form-horizontal" role="form" method="post">
 					<input type="hidden" name="mailboxaction" value="adddomainadmin">
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="username">Username (<code>A-Z</code>, <code>@</code>, <code>-</code>, <code>.</code>).</label>
@@ -125,7 +125,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Backup mail</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<div class="form-group">
 					<label class="control-label col-sm-4" for="location">Location <small>(will be created if missing)</small>:</label>
 					<div class="col-sm-8">
@@ -196,7 +196,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Attachments</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<div class="form-group">
 					<p>Provide a list of dangerous file types. Please take care of the formatting.</p>
 					<input class="form-control" type="text" id="ext" name="ext" value="{return_mailcow_config("extlist")}">
@@ -307,7 +307,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Sender Blacklist</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<div class="form-group">
 					<p>Specify a list of senders or domains to blacklist access:</p>
 					<textarea class="form-control" rows="6" name="sender">{return_mailcow_config("senderaccess")}</textarea>
@@ -324,7 +324,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Privacy</div>
 		<div class="panel-body">
-			<form method="post">
+			<form action="/save" method="post">
 				<div class="form-group">
 					<p>This option enables a PCRE table to remove "User-Agent", "X-Enigmail", "X-Mailer", "X-Originating-IP" and replaces "Received: from" headers with localhost/127.0.0.1.</p>
 					<div class="checkbox">
@@ -349,7 +349,7 @@ Enter "DISABLED" to disable this feature.</pre>
 			<p>
 				<strong>DKIM signing will not be used when when "Anonymize outgoing mail" is enabled.</strong>
 			</p>
-			<form method="post">
+			<form action="/save" method="post">
 				<h4>Active keys</h4>
 				{opendkim_table()}
 				
@@ -383,7 +383,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Message Size</div>
 		<div class="panel-body">
-			<form class="form-inline" method="post">
+			<form action="/save" class="form-inline" method="post">
 				<p>Current message size limitation: <strong>{return_mailcow_config("maxmsgsize")}MB</strong></p>
 				<p>This changes values in PHP, Nginx and Postfix. Services will be reloaded.</p>
 				<div class="form-group">
