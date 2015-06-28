@@ -19,7 +19,7 @@ class AdminController extends BaseController
 
 	public function save()
 	{	
-		header('Location: /admin?save=ok');
+		header('Location: /admin');
 	}
 }
 ?>

@@ -74,6 +74,7 @@ if(isset($_SERVER['REQUEST_URI']))
 	$_SERVER['REQUEST_URI'] = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING);
 }
 
+
 /*
  * Fügt eine Route dem System hinzu
  *
@@ -85,5 +86,6 @@ if(isset($_SERVER['REQUEST_URI']))
 */
 Router::addRoute('/', 'get', 'welcome', 'index');
 Router::addRoute('/admin', 'get', 'admin', 'index');
-Router::addRoute('/save', 'post', 'admin', 'save', '/admin');
+Router::addRoute('/user', 'get', 'user', 'index');
+Router::addRoute('/save', 'post', 'admin', 'save');
 ?>
