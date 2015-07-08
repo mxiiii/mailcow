@@ -1,4 +1,10 @@
 <?php
+
+function loc($loc = false)
+{
+	header('Location: /'.$loc);
+}
+
 function check_login($user, $pass)
 {
 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $user)))

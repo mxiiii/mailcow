@@ -83,7 +83,7 @@ echo "<tr><td>Address book</td><td>", $row['uri'],
 <p>This is <b>not a recurring task</b>. This feature will perform a one-way synchronisation and leave the remote server as it is, no mails will be deleted on either sides.</p>
 <p>The first synchronisation may take a while.</p>
 <small>
-<form class="form-horizontal" role="form" method="post">
+<form class="form-horizontal" role="form" method="post" action="/set_fetch_mail">
 <input type="hidden" name="mailboxaction" value="addfetchmail">
 	<div class="form-group">
 		<label class="control-label col-sm-2" for="imap_host">IMAP Host (with Port)</label>

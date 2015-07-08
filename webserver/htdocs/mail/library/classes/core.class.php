@@ -10,6 +10,7 @@ class Core extends medoo
 	public static $vars = [];
 	public static $controller = false;
 	public static $template = false;
+	public static $messages = [];
 
 
 	/**
@@ -62,6 +63,24 @@ class Core extends medoo
 		{
 			return false;
 		}
+	}
+
+
+	/**
+	* Function to set the Messages
+	*/
+	public static function setMsg($type = 'info', $msg = 'Message')
+	{
+		self::$messages[$type] = $msg;
+	}
+
+
+	/**
+	* Function to display the Message
+	*/
+	public static function getMsg($type = 'info')
+	{
+		return self::$messages[$type];
 	}
 
 }
