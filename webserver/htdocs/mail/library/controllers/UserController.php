@@ -37,9 +37,12 @@ class UserController extends BaseController
 	}
 
 	
-	public function doLogin()
+	public function doLogin($username = false, $password = false)
 	{
-		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $_POST['login_user']))) return loc('login');
+		if($username) $_POST['login_user'] = $username;
+		if($password) $_POST['pass_user'] = $password;
+
+		if(!ctype_alnum(str_replace(array('@', '.', '-'), '', $_POST['login_user']))) return loc('login');
 
 		$pass = escapeshellcmd($_POST['pass_user']);
 		$row = Core::$link->get('admin', ['password', 'superadmin'], [
@@ -49,14 +52,32 @@ class UserController extends BaseController
 			]
 		]);
 
+		if($username && $password) return $row;
+
 		if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$row['password'].'\''), 'verified') !== false)
 		{
 			if($row['superadmin'] == 1) $_SESSION['role'] = 'admin';
 			if($row['superadmin'] == 0) $_SESSION['role'] = 'domainadmin';
+			$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
+			$_SESSION['logged_in'] = true;
 		}
-		else $_SESSION['role'] = 'user';
-		$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
-		$_SESSION['logged_in'] = true;
+		else
+		{
+			$pass = Core::$link->get('mailbox', 'password', [
+				'AND' => [
+					'username' => $_POST['login_user'],
+					'active' => '1',
+				]
+			]);
+
+			if($pass == false) loc('login');
+			else
+			{
+				$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
+				$_SESSION['logged_in'] = true;
+				$_SESSION['role'] = 'user';
+			}
+		}
 
 		loc('admin');
 	}
@@ -135,6 +156,26 @@ class UserController extends BaseController
 		if ($return == '2') exec('sudo /usr/bin/doveadm quota recalc -A', $out, $return);
 
 		loc('user');
+	}
+
+
+	public function change_password()
+	{
+		if($_SESSION['role'] !== 'user') loc('admin');
+		if(empty($_POST['user_old_pass']) || empty($_POST['user_new_pass']) || empty($_POST['user_new_pass'])) loc('user');
+
+		if(!ctype_alnum(str_replace(array('@', '.', '-'), '', $_SESSION['username'])) || empty($_SESSION['username'])) loc('user');
+
+		$password_old = $_POST['user_old_pass'];
+		$password_new = $_POST['user_new_pass'];
+		$password_new2 = $_POST['user_new_pass'];
+
+		if($password_new2 !== $password_new) loc('user');
+
+		$row = $this->doLogin($_SESSION['username'], $password_old);
+
+		print_r($row);
+		die();
 	}
 }
 ?>

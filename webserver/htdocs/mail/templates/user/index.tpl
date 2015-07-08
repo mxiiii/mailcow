@@ -4,10 +4,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Change password</div>
 		<div class="panel-body">
-			<form class="form-horizontal" role="form" method="post">
-				<input type="hidden" name="mailboxaction" value="setuserpassword">
-				<input type="hidden" name="user_now" value="<?php echo $logged_in_as; ?>">
-				
+			<form class="form-horizontal" role="form" method="post" action="/change_password">
 				<div class="form-group">
 					<label class="control-label col-sm-3" for="user_old_pass">Current password:</label>
 					<div class="col-sm-5">
