@@ -71,11 +71,16 @@ class UserController extends BaseController
 			]);
 
 			if($pass == false) loc('login');
-			else
+
+			if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$pass.'\''), 'verified') !== false)
 			{
 				$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
 				$_SESSION['logged_in'] = true;
 				$_SESSION['role'] = 'user';
+			}
+			else
+			{
+				if($pass == false) loc('login');
 			}
 		}
 
