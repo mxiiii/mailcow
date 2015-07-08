@@ -6,13 +6,22 @@ function check_login($user, $pass)
 		return false;
 	}
 	$pass = escapeshellcmd($pass);
-	$hash = Core::$link->get('admin', 'password', [
+	$hash = Core::$link->get('admin', ['password', 'superadmin'], [
 		'AND' => [
 			'username' => $user,
-			'superadmin' => '1',
 			'active' => '1',
 		]
 	]);
+
+	echo '<pre>';
+	print_r($hash);
+	echo '</pre>';
+
+	echo 'echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\'';
+	echo '<br>';
+	echo 'echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$hash.'\'';
+
+	die();
 
 	// Electrofensterloginbypass
 	return 'admin';

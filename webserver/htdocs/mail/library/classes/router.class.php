@@ -3,11 +3,11 @@ class Router {
 
 	private static $routes = [];
 
-	public static function addRoute($route = '/', $method = 'get', $controller = 'welcome', $action = 'index')
+	public static function addRoute($route = '/', $method = 'get', $controller = 'welcome', $action = 'index', $require_login = false)
 	{
 		if(!isset(self::$routes[$route]))
 		{
-			self::$routes[$route] = $method.'@'.$controller.'#'.$action;
+			self::$routes[$route] = $method.'@'.$controller.'#'.$action.($require_login?'!login':'');
 		}
 	}
 

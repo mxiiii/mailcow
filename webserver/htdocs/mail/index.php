@@ -16,7 +16,10 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 		$route = [];
 		$route['method'] = $method[0];
 		$route['controller'] = ucfirst(explode('#', $method[1])[0]);
-		$route['action'] = explode('#', $method[1])[1];
+
+		$login = explode('!', explode('#', $method[1])[1]);
+		$route['action'] = $login[0];
+		$route['login'] = (isset($login[1]) && $login[1] == 'login' ? true : false);
 
 		// Controller als 'Controller' abspeichern
 		$controller = $route['controller'].'Controller';
@@ -31,6 +34,9 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 		{
 			throw new Exception('404');
 		}
+
+		// Falls die Route einen Login brauch, diesen verwenden
+		if($route['login'] && !isset($_SESSION['logged_in'])) header('Location: /login');
 
 		// nochmal überprüfen ob der Controller exestiert
 		if(class_exists($controller))

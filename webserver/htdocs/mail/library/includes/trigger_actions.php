@@ -1,4 +1,5 @@
 <?php
+return;
 if (isset($_POST["login_user"]) && isset($_POST["pass_user"])) {
 	if (check_login($link, $_POST["login_user"], $_POST["pass_user"]) == "admin") {
 		$_SESSION['mailcow_cc_loggedin'] = "yes";

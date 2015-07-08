@@ -15,24 +15,28 @@
 				<li class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Control center<span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu">
-						{if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes")}
-							{if $logged_in_role == "admin" }
+						{if (isset($smarty.session['logged_in']) && $smarty.session['logged_in'] == true)}
+							{if $smarty.session['role'] == 'admin' }
 								<li>
 									<a href="/admin">Administration</a>
 								</li>
 							{/if}
 							
-							{if $logged_in_role == "admin" || $logged_in_role == "domainadmin"}
+							{if $smarty.session['role'] == 'admin' || $smarty.session['role'] == 'domainadmin'}
 								<li>
 									<a href="/mailbox.php">Mailboxes</a>
 								</li>
 							{/if}
 
-							{if $logged_in_role == "user"}
+							{if $smarty.session['role'] == 'user'}
 								<li>
-									<a href="/mailbox">User settings</a>
+									<a href="/user">User settings</a>
 								</li>
 							{/if}
+
+							<li>
+								<a href="/logout">Logout</a>
+							</li>
 						{else}
 							<li>
 								<a href="/admin">Login</a>
