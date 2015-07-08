@@ -63,16 +63,14 @@ class UserController extends BaseController
 		}
 		else
 		{
-			$pass = Core::$link->get('mailbox', 'password', [
+			$pass_hash = Core::$link->get('mailbox', 'password', [
 				'AND' => [
 					'username' => $_POST['login_user'],
 					'active' => '1',
 				]
 			]);
 
-			if($pass == false) loc('login');
-
-			if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$pass.'\''), 'verified') !== false)
+			if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$pass_hash.'\''), 'verified') !== false)
 			{
 				$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
 				$_SESSION['logged_in'] = true;
