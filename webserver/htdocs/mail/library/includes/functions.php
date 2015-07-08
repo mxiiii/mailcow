@@ -1,8 +1,8 @@
 <?php
 
-function loc($loc = false)
+function loc($loc = '')
 {
-	header('Location: /'.$loc);
+	header('Location: '.$loc);
 }
 
 function check_login($user, $pass)

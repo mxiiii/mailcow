@@ -3,7 +3,7 @@ class AdminController extends BaseController
 {
 	public function index()
 	{
-		if(isset($_SESSION['role']) && $_SESSION['role'] == 'user') header('Location: /user');
+		if(isset($_SESSION['role']) && $_SESSION['role'] == 'user') loc('user');
 
 		// Username Query
 		$username = Core::$link->select('admin', 'username', ['superadmin' => '1'])[0];
@@ -20,7 +20,7 @@ class AdminController extends BaseController
 
 	public function save()
 	{	
-		header('Location: /admin');
+		loc('admin');
 	}
 }
 ?>

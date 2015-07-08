@@ -57,7 +57,7 @@ class UserController extends BaseController
 		else $_SESSION['role'] = 'user';
 		$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
 		$_SESSION['logged_in'] = true;
-		
+
 		loc('admin');
 	}
 
@@ -72,15 +72,9 @@ class UserController extends BaseController
 
 	public function set_fetch_mail()
 	{
-		if($_SESSION['role'] !== 'user')
-		{
-
-		}
-
-		echo '<pre>';
-		print_r($_POST);
+		if($_SESSION['role'] !== 'user') loc('admin');
 		
-		if(empty($_POST['imap_host']) || empty($_POST['imap_username']) || empty($_POST['imap_password']) || empty($_POST['imap_enc'])) header('Location: /user');
+		if(empty($_POST['imap_host']) || empty($_POST['imap_username']) || empty($_POST['imap_password']) || empty($_POST['imap_enc'])) loc('user');
 
 		$host = explode(':', escapeshellcmd($_POST['imap_host']));
 		$imap_host = $host[0];
@@ -93,9 +87,54 @@ class UserController extends BaseController
 
 		$allowed_imap_connection = ['/ssl', '/tls', 'none'];
 		if(!in_array($imap_enc, $allowed_imap_connection)) die('Invalid encryption mechanism!');
-		if($imap_enc == 'none') $imap_enc = '';
 
-		die();
+		if(!is_numeric($imap_port) || empty($imap_port)) loc('user');
+		if(!ctype_alnum(str_replace(array('@', '.', '-', '\\', '/'), '', $imap_username)) || empty ($imap_username)) loc('user');
+		if(!ctype_alnum(str_replace(array(', ', ' , ', ' ,', ' '), '', escapeshellcmd($_POST['imap_exclude']))) && !empty($_POST['imap_exclude'])) loc('user');
+		if(!$imap = imap_open("{".$imap_host.":".$imap_port."/imap/novalidate-cert".$imap_enc."}", $imap_username, $imap_password, OP_HALFOPEN, 1)) loc('user');
+		
+		switch($imap_enc)
+		{
+			case '/ssl':
+				$imap_enc = 'imaps';
+				break;
+
+			case '/tls':
+				$imap_enc = 'starttls';
+				break;
+
+			case '':
+				$imap_enc = '';
+				break;
+
+			default:
+				$imap_enc = '';
+				break;
+		}
+
+		if(count($imap_exclude) > 1)
+		{
+			foreach($imap_exclude as $each_exclude)
+			{
+				$exclude_parameter .= '-x '.$each_exclude.'* ';
+			}
+		}
+
+		ini_set('max_execution_time', 3600);
+		exec('sudo /usr/bin/doveadm -o imapc_port='.$imap_port.' -o imapc_ssl='.$imap_enc.' \
+		-o imapc_host='.$imap_host.' \
+		-o imapc_user='.$imap_username.' \
+		-o imapc_password='.$imap_password.' \
+		-o imapc_ssl_verify=no \
+		-o ssl_client_ca_dir=/etc/ssl/certs \
+		-o imapc_features="rfc822.size fetch-headers" \
+		-o mail_prefetch_count=20 sync -1 \
+		-x "Shared*" -x "Public*" -x "Archives*" '.$exclude_parameter.' \
+		-R -U -u '.$logged_in_as.' imapc:', $out, $return);
+		
+		if ($return == '2') exec('sudo /usr/bin/doveadm quota recalc -A', $out, $return);
+
+		loc('user');
 	}
 }
 ?>
