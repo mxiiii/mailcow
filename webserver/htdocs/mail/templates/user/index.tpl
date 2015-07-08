@@ -1,5 +1,6 @@
 <div class="container">
 
+	<!-- Change Password -->
 	<div class="panel panel-default">
 		<div class="panel-heading">Change password</div>
 		<div class="panel-body">
@@ -43,6 +44,7 @@
 		</div>
 	</div>
 
+	<!-- Calendars and Contacts -->
 	<div class="panel panel-default">
 		<div class="panel-heading">Calendars and Contacts</div>
 		<div class="panel-body">
@@ -76,6 +78,67 @@
 					</tbody>
 				</table>
 			</div>
+		</div>
+	</div>
+
+	<!-- Fetch E-Mails -->
+	<div class="panel panel-default">
+		<div class="panel-heading">Fetch mails</div>
+		<div class="panel-body">
+			<p>This is <b>not a recurring task</b>. This feature will perform a one-way synchronisation and leave the remote server as it is, no mails will be deleted on either sides.</p>
+			<p>The first synchronisation may take a while.</p>
+			<small>
+				<form class="form-horizontal" role="form" method="post">
+					<input type="hidden" name="mailboxaction" value="addfetchmail">
+					
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="imap_host">IMAP Host (with Port)</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" name="imap_host" id="imap_host" placeholder="remote.example.com:993">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="imap_username">IMAP username:</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" name="imap_username" id="imap_username">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="imap_password">IMAP password:</label>
+						<div class="col-sm-10">          
+							<input type="password" class="form-control" name="imap_password" id="imap_password">
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="imap_exclude">Exclude folders:</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" name="imap_exclude" id="imap_exclude" placeholder="Folder1, Folder2, Folder3">
+						</div>
+					</div>
+
+					<div class="form-group">   
+						<div class="col-sm-offset-2 col-sm-10">
+							<div class="radio">
+								<label><input type="radio" name="imap_enc" value="/ssl" checked>SSL</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="imap_enc" value="/tls" >STARTTLS</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="imap_enc" value="none">None (this will try STARTTLS)</label>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">        
+						<div class="col-sm-offset-2 col-sm-10">
+							<button type="submit" class="btn btn-success btn-sm">Sync now</button>
+						</div>
+					</div>
+				</form>
+			</small>
 		</div>
 	</div>
 </div>
