@@ -34,6 +34,9 @@ define('ABS_PATH', str_replace('\\', '/', realpath(__DIR__.'/../')).'/');
 
 $hostname = exec("/usr/sbin/postconf -h myhostname");
 define('HOSTNAME', (!empty($hostname) ? $hostname : '127.0.0.1'));
+define('HOSTNAME_0', explode(".", exec("/usr/sbin/postconf -h myhostname"))[0]);
+define('HOSTNAME_1', explode(".", exec("/usr/sbin/postconf -h myhostname"))[1]);
+define('HOSTNAME_2', explode(".", exec("/usr/sbin/postconf -h myhostname"))[2]);
 
 /* Plugins */
 define('SMARTY_VERSION', 'smarty-3.1.25');

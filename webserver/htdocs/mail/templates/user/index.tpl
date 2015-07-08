@@ -42,4 +42,40 @@
 			</form>
 		</div>
 	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">Calendars and Contacts</div>
+		<div class="panel-body">
+			<div class="table-responsive">
+				<table class="table table-striped" id="domainadminstable">
+					<thead>
+						<tr>
+							<th>Components</th>
+							<th>URI</th>
+							<th>Display name</th>
+							<th>Export</th>
+							<th>Link</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>{$cal['components']}</td>
+							<td>{$cal['uri']}</td>
+							<td>{$cal['displayname']}</td>
+							<td><a href="https://dav.{$hostname_1}.{$hostname_2}/calendars/{$smarty.session['username']}/{$cal['uri']}?export">Download (ICS format)</a></td>
+							<td><a href="https://dav.{$hostname_1}.{$hostname_2}/calendars/{$smarty.session['username']}/{$cal['uri']}">Open</a></td>
+						</tr>
+
+						<tr>
+							<td>Address book</td>
+							<td>{$ad['uri']}</td>
+							<td>{$ad['displayname']}</td>
+							<td><a href="https://dav.{$hostname_1}.{$hostname_2}/addressbooks/{$smarty.session['username']}/{$cal['uri']}?export">Download (VCF format)</a></td>
+							<td><a href="https://dav.{$hostname_1}.{$hostname_2}/addressbooks/{$smarty.session['username']}/{$cal['uri']}">Open</a></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>

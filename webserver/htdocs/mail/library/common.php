@@ -29,6 +29,9 @@ $template->setConfigDir('configs/');
 $template->setCacheDir('cache/');
 
 $template->assign('hostname', HOSTNAME);
+$template->assign('hostname_0', HOSTNAME_0);
+$template->assign('hostname_1', HOSTNAME_1);
+$template->assign('hostname_2', HOSTNAME_2);
 $template->assign('css_asset_path', CSS_ASSET_PATH);
 $template->assign('js_asset_path', JS_ASSET_PATH);
 $template->assign('img_asset_path', IMG_ASSET_PATH);

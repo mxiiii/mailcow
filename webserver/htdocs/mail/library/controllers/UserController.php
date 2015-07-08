@@ -3,6 +3,32 @@ class UserController extends BaseController
 {
 	public function index()
 	{
+
+		// Kalender usw auslesen
+		$row_cal = Core::$link->get('calendars', [
+			'components',
+			'uri',
+			'displayname'
+		],
+		[
+			'principaluri' => 'principals/'.$_SESSION['username']
+		]);
+
+		// einige Sachen ersetzen
+		$row_cal['components'] = str_replace(['VEVENT', 'VTODO', ','], ['Calendar', 'Tasks', ', '], $row_cal['components']);
+
+		// Adressbuch auslesen
+		$row_ad = Core::$link->get('addressbooks', [
+			'uri',
+			'displayname'
+		],
+		[
+			'principaluri' => 'principals/'.$_SESSION['username']
+		]);
+
+		// Variablen übergeben
+		Core::$template->assign('cal', $row_cal);
+		Core::$template->assign('ad', $row_ad);
 	}
 
 	public function login()
@@ -27,6 +53,7 @@ class UserController extends BaseController
 			if($row['superadmin'] == 0) $_SESSION['role'] = 'domainadmin';
 		}
 		else $_SESSION['role'] = 'user';
+		$_SESSION['username'] = $_POST['login_user'];
 		$_SESSION['logged_in'] = true;
 
 		header('Location: /admin');
