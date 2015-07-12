@@ -1,7 +1,14 @@
 <?php
 
-function loc($loc = '')
+function loc($loc = '', $messages = false)
 {
+
+	if(is_array($messages))
+	{
+		unset($_SESSION['msg']);
+		$_SESSION['msg'][$messages[0]] = $messages[1];
+	}
+
 	header('Location: '.$loc);
 }
 

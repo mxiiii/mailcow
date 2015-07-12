@@ -44,28 +44,25 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Domain administrators</div>
 		<div class="panel-body">
-			<form action="/save" method="post">
-				<div class="table-responsive">
-					<table class="table table-striped" id="domainadminstable">
-						<thead>
-							<tr>
-								<th>Username</th>
-								<th>Assigned domains</th>
-								<th>Active</th>
-								<th>Action</th>
-							</tr>
-						</thead>
-						
-						<tbody>
-						</tbody>
-					</table>
-				</div>
-			</form>
+			<div class="table-responsive">
+				<table class="table table-striped" id="domainadminstable">
+					<thead>
+						<tr>
+							<th>Username</th>
+							<th>Assigned domains</th>
+							<th>Active</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+					</tbody>
+				</table>
+			</div>
 			
 			<small>
 				<h4>Add domain administrator</h4>
-				<form action="/save" class="form-horizontal" role="form" method="post">
-					<input type="hidden" name="mailboxaction" value="adddomainadmin">
+				<form action="/add_domain_admin" class="form-horizontal" role="form" method="post">
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="username">Username (<code>A-Z</code>, <code>@</code>, <code>-</code>, <code>.</code>).</label>
 						<div class="col-sm-8">

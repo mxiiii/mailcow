@@ -12,19 +12,6 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link href="{$css_asset_path}material.min.css" rel="stylesheet">
 <link href="{$css_asset_path}ripples.min.css" rel="stylesheet">
-<?php
-if (basename($_SERVER['PHP_SELF']) == "mailbox.php") {
-?>
-<style>
-/*.row { margin-top: 40px;	padding: 0 10px; }
-.clickable { cursor: pointer; }
-.panel-heading div { margin-top: -18px; font-size: 15px; }
-.panel-heading div span{ margin-left:5px; }
-.panel-body{ display: none; }*/
-</style>
-<?php
-}
-?>
 <style>
 .navbar.navbar, .navbar-default.navbar {
   background-color: #914063;
@@ -45,5 +32,8 @@ a, a:hover, a:focus {
 <body>
 
 {include file="navigation.tpl"}
+
+{include file="flash_messages.tpl"}
+
 {include file="{$content}"}
 {include file="footer.tpl"}

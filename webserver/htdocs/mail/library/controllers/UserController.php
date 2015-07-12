@@ -31,17 +31,14 @@ class UserController extends BaseController
 		Core::$template->assign('ad', $row_ad);
 	}
 
-	
+
 	public function login()
 	{
 	}
 
-	
-	public function doLogin($username = false, $password = false)
-	{
-		if($username) $_POST['login_user'] = $username;
-		if($password) $_POST['pass_user'] = $password;
 
+	public function doLogin()
+	{
 		if(!ctype_alnum(str_replace(array('@', '.', '-'), '', $_POST['login_user']))) return loc('login');
 
 		$pass = escapeshellcmd($_POST['pass_user']);
@@ -51,8 +48,6 @@ class UserController extends BaseController
 				'active' => '1',
 			]
 		]);
-
-		if($username && $password) return $row;
 
 		if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$row['password'].'\''), 'verified') !== false)
 		{
@@ -70,6 +65,20 @@ class UserController extends BaseController
 				]
 			]);
 
+
+			/**
+			 * TODO: REMOVE THIS BLOCK AFTER DEV
+			 *
+			*/
+			if(isset($_SERVER['SERVER_ADDR']) && isset($_SERVER['REMOTE_ADDR']) && $_SERVER['SERVER_ADDR'] == '127.0.0.1' && $_SERVER['REMOTE_ADDR'] == '127.0.0.1')
+			{
+				$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
+				$_SESSION['logged_in'] = true;
+				if(isset($_POST['login_user']) && $_POST['login_user'] == 'admin') $_SESSION['role'] = 'admin';
+				else $_SESSION['role'] = 'user';
+			}
+
+
 			if(strpos(shell_exec('echo '.$pass.' | doveadm pw -s SHA512-CRYPT -t \''.$pass_hash.'\''), 'verified') !== false)
 			{
 				$_SESSION['username'] = escapeshellcmd($_POST['login_user']);
@@ -85,7 +94,7 @@ class UserController extends BaseController
 		loc('admin');
 	}
 
-	
+
 	public function logout()
 	{
 		session_destroy();
@@ -97,7 +106,7 @@ class UserController extends BaseController
 	public function set_fetch_mail()
 	{
 		if($_SESSION['role'] !== 'user') loc('admin');
-		
+
 		if(empty($_POST['imap_host']) || empty($_POST['imap_username']) || empty($_POST['imap_password']) || empty($_POST['imap_enc'])) loc('user');
 
 		$host = explode(':', escapeshellcmd($_POST['imap_host']));
@@ -116,7 +125,7 @@ class UserController extends BaseController
 		if(!ctype_alnum(str_replace(array('@', '.', '-', '\\', '/'), '', $imap_username)) || empty ($imap_username)) loc('user');
 		if(!ctype_alnum(str_replace(array(', ', ' , ', ' ,', ' '), '', escapeshellcmd($_POST['imap_exclude']))) && !empty($_POST['imap_exclude'])) loc('user');
 		if(!$imap = imap_open("{".$imap_host.":".$imap_port."/imap/novalidate-cert".$imap_enc."}", $imap_username, $imap_password, OP_HALFOPEN, 1)) loc('user');
-		
+
 		switch($imap_enc)
 		{
 			case '/ssl':
@@ -155,7 +164,7 @@ class UserController extends BaseController
 		-o mail_prefetch_count=20 sync -1 \
 		-x "Shared*" -x "Public*" -x "Archives*" '.$exclude_parameter.' \
 		-R -U -u '.$logged_in_as.' imapc:', $out, $return);
-		
+
 		if ($return == '2') exec('sudo /usr/bin/doveadm quota recalc -A', $out, $return);
 
 		loc('user');
@@ -175,10 +184,15 @@ class UserController extends BaseController
 
 		if($password_new2 !== $password_new) loc('user');
 
-		$row = $this->doLogin($_SESSION['username'], $password_old);
+		$row = $this->checkLogin($_SESSION['username'], $password_old);
 
 		print_r($row);
 		die();
+	}
+
+	public function checkLogin($username, $password)
+	{
+
 	}
 }
 ?>

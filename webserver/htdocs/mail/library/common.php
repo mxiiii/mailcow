@@ -75,5 +75,7 @@ Router::addRoute('/do_login', 'post', 'user', 'doLogin');
 Router::addRoute('/set_fetch_mail', 'post', 'user', 'set_fetch_mail');
 Router::addRoute('/change_password', 'post', 'user', 'change_password');
 
+Router::addRoute('/add_domain_admin', 'post', 'admin', 'add_domain_admin');
+
 // check_login('admin', 'demo');
 ?>
