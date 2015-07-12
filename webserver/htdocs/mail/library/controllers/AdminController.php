@@ -61,20 +61,19 @@ class AdminController extends BaseController
 							'active' => $active
 						]);
 						if(!$insert_da) loc('admin', ['warning', 'MySQL-Fehler #3.']);
-
-
-						$insert_a = Core::$link->insert('admin', [
-							'username' => $username,
-							'password' => $password,
-							'superadmin' => 0,
-							'#created' => 'now()',
-							'#modified' => 'now()',
-							'active' => $active
-						]);
-						if(!$insert_a) loc('admin', ['warning', 'MySQL-Fehler #3.']);
-
-						loc('admin', ['success', 'Benutzer erfolgreich angelegt.']);
 					}
+
+					$insert_a = Core::$link->insert('admin', [
+						'username' => $username,
+						'password' => $password,
+						'superadmin' => 0,
+						'#created' => 'now()',
+						'#modified' => 'now()',
+						'active' => $active
+					]);
+					if(!$insert_a) loc('admin', ['warning', 'MySQL-Fehler #3.']);
+
+					loc('admin', ['success', 'Benutzer erfolgreich angelegt.']);
 				}
 			}
 		}
