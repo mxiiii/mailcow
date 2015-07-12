@@ -9,6 +9,10 @@ class AdminController extends BaseController
 		$username = Core::$link->select('admin', 'username', ['superadmin' => '1'])[0];
 		Core::$template->assign('username', $username);
 
+		// Domain Admin Query
+		$domain_admins = Core::$link->query('SELECT username, LOWER(GROUP_CONCAT(DISTINCT domain SEPARATOR \', \')) AS domain, active FROM domain_admins WHERE username NOT IN (SELECT username FROM admin WHERE superadmin=\'1\') GROUP BY username');
+		Core::$template->assign('domain_admins', $domain_admins);
+
 		// Domain Query
 		$domains = Core::$link->select('domain', 'domain');
 		Core::$template->assign('domains', $domains);

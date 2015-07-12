@@ -9,28 +9,28 @@
 		<div class="panel-body">
 			<form action="/save" method="post">
 				<input type="hidden" name="admin_user_now" value="{$username}">
-				
+
 				<div class="form-group">
 					<label class="control-label col-sm-2" for="quota">Administrator:</label>
 					<div class="col-sm-10">
 						<input type="text" class="form-control" name="admin_user" id="quota" value="{$username}">
 					</div>
 				</div>
-				
+
 				<div class="form-group">
 					<label class="control-label col-sm-2" for="admin_pass">Password:</label>
 					<div class="col-sm-10">
 						<input type="password" class="form-control" name="admin_pass" id="admin_pass" placeholder="Leave blank for no change">
 					</div>
 				</div>
-				
+
 				<div class="form-group">
 					<label class="control-label col-sm-2" for="admin_pass2">Password (repeat):</label>
 					<div class="col-sm-10">
 						<input type="password" class="form-control" name="admin_pass2" id="admin_pass2">
 					</div>
 				</div>
-	
+
 				<div class="form-group">
 					<div class="col-sm-offset-2 col-sm-10">
 						<button type="submit" class="btn btn-default btn-raised btn-sm">Save changes</button>
@@ -54,12 +54,19 @@
 							<th>Action</th>
 						</tr>
 					</thead>
-					
+						{foreach $domain_admins as $domain_admin}
+							<tr>
+								<td>{$domain_admin['username']}</td>
+								<td>{$domain_admin['domain']}</td>
+								<td>{$domain_admin['active']}</td>
+								<td><a href="/deteledomainadmin/{$domain_admin['username']}">delete</a> | <a href="/editdomainadmin/{$domain_admin['username']}">edit</a></td>
+							</tr>
+						{/foreach}
 					<tbody>
 					</tbody>
 				</table>
 			</div>
-			
+
 			<small>
 				<h4>Add domain administrator</h4>
 				<form action="/add_domain_admin" class="form-horizontal" role="form" method="post">
@@ -69,7 +76,7 @@
 							<input type="text" class="form-control" name="username" id="username" required>
 						</div>
 					</div>
-		
+
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="name">Assign domains (hold <code>CTRL</code> to select multiple values):</label>
 						<div class="col-sm-8">
@@ -87,7 +94,7 @@
 							<input type="password" class="form-control" name="password" id="password" placeholder="">
 						</div>
 					</div>
-					
+
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="password2">Password (repeat):</label>
 						<div class="col-sm-8">
@@ -129,12 +136,12 @@
 						<input type="text" class="form-control" name="location" id="location" value="{return_mailcow_config("backup_location")}">
 					</div>
 				</div>
-				
+
 				<br>
 				<br>
-					
+
 				<div class="clearfix"></div>
-				
+
 				<div class="form-group">
 					<label class="control-label col-sm-4" for="runtime">Runtime</label>
 					<div class="col-sm-8">
@@ -147,7 +154,7 @@
 				</div>
 
 				<div class="clearfix"></div>
-				
+
 				<div class="form-group">
 					<label class="control-label col-sm-4" for="mailboxes[]">Select mailboxes <small>(hold <code>CTRL</code> to select multiple values)</small>:</label>
 					<div class="col-sm-8">
@@ -164,7 +171,7 @@
 						</select>
 					</div>
 				</div>
-				
+
 				<div class="clearfix"></div>
 
 				<div class="form-group">
@@ -202,7 +209,7 @@
 Format: ext1|ext1|ext3
 Enter "DISABLED" to disable this feature.</pre>
 					</p>
-	
+
 					<div class="radio">
 						<label>
 							<input type="radio" name="vfilter" id="vfilter_reject_button" value="reject" <?php if (!return_mailcow_config("vfilter")) { echo "checked"; } ?>>
@@ -216,23 +223,23 @@ Enter "DISABLED" to disable this feature.</pre>
 							Scan attachments with ClamAV and/or upload to VirusTotal
 						</label>
 					</div>
-					
+
 					<hr>
-					
+
 					<div class="row">
 						<div class="col-sm-6">
 							<small>
 								<h4>ClamAV</h4>
-								
+
 								<div class="checkbox">
 									<label>
 										<input name="clamavenable" type="checkbox" {return_mailcow_config("cavenable")}>
 										Use ClamAV to scan mail
 									</label>
 								</div>
-								
+
 								<p>
-									
+
 									<ul class="nav nav-pills">
 										<li>
 											<a href="?av_dl">
@@ -249,11 +256,11 @@ Enter "DISABLED" to disable this feature.</pre>
 								<p>Senders of infected messages are informed about failed delivery.</p>
 							</small>
 						</div>
-						
+
 						<div class="col-sm-6">
 							<small>
 								<h4>VirusTotal Uploader</h4>
-									
+
 								<div class="checkbox">
 									<label>
 										<input name="virustotalenable" type="checkbox" {return_mailcow_config("vtenable")}>
@@ -263,12 +270,12 @@ Enter "DISABLED" to disable this feature.</pre>
 
 								<p>Scan dangerous attachments via VirusTotal Public API.</p>
 								<p><b>File handling and limitations</b> (<a href="https://www.virustotal.com/de/documentation/public-api/" target="_blank">VirusTotal Public API v2.0</a>)</p>
-								
+
 								<ul>
 									<li><em>Files up to 200M will be hashed. If a previous scan result was found, it will be attached.</em></li>
 									<li><em>Files smaller than 32M will be uploaded if no previous scan result was found.</em></li>
 								</ul>
-			
+
 								<div class="checkbox">
 									<label>
 										<input name="virustotalcheckonly" type="checkbox" {return_mailcow_config("vtupload")}>
@@ -308,7 +315,7 @@ Enter "DISABLED" to disable this feature.</pre>
 				<div class="form-group">
 					<p>Specify a list of senders or domains to blacklist access:</p>
 					<textarea class="form-control" rows="6" name="sender">{return_mailcow_config("senderaccess")}</textarea>
-					
+
 					<br>
 
 					<button type="submit" class="btn btn-default btn-raised btn-sm">Apply</button>
@@ -331,7 +338,7 @@ Enter "DISABLED" to disable this feature.</pre>
 							Anonymize outgoing mail
 						</label>
 					</div>
-					
+
 					<button type="submit" class="btn btn-default btn-raised btn-sm">Apply</button>
 				</div>
 			</form>
@@ -349,7 +356,7 @@ Enter "DISABLED" to disable this feature.</pre>
 			<form action="/save" method="post">
 				<h4>Active keys</h4>
 				{opendkim_table()}
-				
+
 				<h4>Add new key</h4>
 				<div class="form-group">
 					<div class="row">
@@ -357,12 +364,12 @@ Enter "DISABLED" to disable this feature.</pre>
 							<strong>Domain</strong>
 							<input class="form-control" id="dkim_domain" name="dkim_domain" placeholder="example.org">
 						</div>
-						
+
 						<div class="col-md-4">
 							<strong>Selector</strong>
 							<input class="form-control" id="dkim_selector" name="dkim_selector" placeholder="default">
 						</div>
-		
+
 						<div class="col-md-4">
 							<br>
 							<button type="submit" class="btn btn-default btn-raised btn-sm">
@@ -511,7 +518,7 @@ mysql --defaults-file=/etc/mysql/debian.cnf mailcow_database_name -e "SELECT uri
 		  				</div>
 					</div>
 				</div>
-				
+
 				<div class="col-md-6">
 					<h4>RAM usage - {echo_sys_info("ram")}%</h4>
 					<div class="progress">
@@ -520,7 +527,7 @@ mysql --defaults-file=/etc/mysql/debian.cnf mailcow_database_name -e "SELECT uri
 					</div>
 				</div>
 			</div>
-		
+
 			<h4>Mail queue</h4>
 			<pre>
 {echo_sys_info("mailq")}</pre>
