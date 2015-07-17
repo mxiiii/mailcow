@@ -165,13 +165,13 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 	switch ($s) {
 		case "backup":
 			$file="/var/www/MAILBOX_BACKUP";
-			if (($v['use_backup'] != "on" && $v['use_backup'] != "") || 
+			if (($v['use_backup'] != "on" && $v['use_backup'] != "") ||
 				($v['runtime'] != "hourly" && $v['runtime'] != "daily" && $v['runtime'] != "monthly")) {
-					header("Location: do.php?event=".base64_encode("Invalid form data"));
+					loc('admin');
 					die("Invalid form data");
 			}
 			if (!ctype_alnum(str_replace("/", "", $v['location']))) {
-				header("Location: do.php?event=".base64_encode("Invalid form data"));
+				loc('admin');
 				die("Invalid form data");
 			}
 			if (!isset($v['use_backup']) || empty($v['use_backup'])) {
@@ -181,8 +181,8 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 			file_put_contents($file, "MBOX=(".PHP_EOL, FILE_APPEND | LOCK_EX);
 			foreach ($v['mailboxes'] as $mbox) {
 				if (!filter_var($mbox, FILTER_VALIDATE_EMAIL)) {
-					header("Location: do.php?event=".base64_encode("Mail address format invalid"));
-					die("Mail address format invalid"); 
+					loc('admin');
+					die("Mail address format invalid");
 				}
 				file_put_contents($file, $mbox.PHP_EOL, FILE_APPEND | LOCK_EX);
 			}
@@ -190,62 +190,62 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 			file_put_contents($file, "LOCATION=".$v['location'].PHP_EOL, FILE_APPEND | LOCK_EX);
 			exec("sudo /usr/local/sbin/mc_inst_cron", $out, $return);
 			if ($return != "0") {
-				header("Location: do.php?event=".base64_encode("Error setting up cronjob"));
+				loc('admin');
 				die("Error setting up cronjob");
 			}
-			header('Location: do.php?return=success');
+			loc('admin');
 			break;
 		case "vtupload":
 			if ($v != "1") {
 				file_put_contents($GLOBALS["VT_ENABLE_UPLOAD"], "");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			else {
 				file_put_contents($GLOBALS["VT_ENABLE_UPLOAD"], "1");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			break;
 		case "vtenable":
 			if ($v != "1") {
 				file_put_contents($GLOBALS["VT_ENABLE"], "");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			else {
 				file_put_contents($GLOBALS["VT_ENABLE"], "1");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			break;
 		case "cavenable":
 			if ($v != "1") {
 				file_put_contents($GLOBALS["CAV_ENABLE"], "");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			else {
 				file_put_contents($GLOBALS["CAV_ENABLE"], "1");
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			break;
 		case "maxmsgsize":
 			exec("sudo /usr/local/sbin/mc_msg_size $v", $out, $return);
 			if ($return != "0") {
-				header("Location: do.php?event=".base64_encode("Error setting max. message size"));
+				loc('admin');
 				die("Error setting max. message size");
 			}
-			header('Location: do.php?return=success');
+			loc('admin');
 			break;
 		case "vtapikey":
 			file_put_contents($GLOBALS["VT_API_KEY"], $v);
-			header('Location: do.php?return=success');
+			loc('admin');
 			break;
 		case "extlist":
 			if ($vext == "reject") {
 				foreach (explode("|", $v) as $each_ext) { if (!ctype_alnum($each_ext) || strlen($each_ext) >= 10 ) { return false; } }
 				file_put_contents($GLOBALS["mailcow_reject_attachments"], "/name=[^>]*\.($v)/     REJECT     Dangerous files are prohibited on this server.".PHP_EOL);
-				header('Location: do.php?return=success');
+				loc('admin');
 			} elseif ($vext == "filter") {
 				foreach (explode("|", $v) as $each_ext) { if (!ctype_alnum($each_ext) || strlen($each_ext) >= 10 ) { return false; } }
 				file_put_contents($GLOBALS["mailcow_reject_attachments"], "/name=[^>]*\.($v)/     FILTER     vfilter:dummy".PHP_EOL);
-				header('Location: do.php?return=success');
+				loc('admin');
 			}
 			break;
 		case "anonymize":
@@ -256,11 +256,11 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 /^\s*X-Originating-IP/  IGNORE
 		';
 			if ($v == "on") {
-				file_put_contents($GLOBALS["mailcow_anonymize_headers"], $template);
-				header('Location: do.php?return=success');
+				file_put_contents($GLOBALS["mailcow_anonymize_loc('admin')"]);
+				loc('admin');
 			} else {
-				file_put_contents($GLOBALS["mailcow_anonymize_headers"], "");
-				header('Location: do.php?return=success');
+				file_put_contents($GLOBALS["mailcow_anonymize_loc('admin')"]);
+				loc('admin');
 			}
 			break;
 		case "senderaccess":
@@ -273,7 +273,7 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 			}
 			$sender_map = $GLOBALS["mailcow_sender_access"];
 			shell_exec("/usr/sbin/postmap $sender_map");
-			header('Location: do.php?return=success');
+			loc('admin');
 			break;
 	}
 }
@@ -422,7 +422,7 @@ function mailbox_add_alias($link, $postarray) {
 	$domain = substr($address, strpos($address, '@')+1);
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
@@ -431,7 +431,7 @@ function mailbox_add_alias($link, $postarray) {
 		header("Location: do.php?event=".base64_encode("Mail address format invalid"));
 		die("Mail address format invalid");
 	}
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain'"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain'"))) {
 		header("Location: do.php?event=".base64_encode("Domain $domain not found"));
 		die("Domain $domain not found");
 	}
@@ -447,7 +447,7 @@ function mailbox_add_alias_domain($link, $postarray) {
 	$target_domain = mysqli_real_escape_string($link, $_POST['target_domain']);
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$target_domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$target_domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
@@ -460,11 +460,11 @@ function mailbox_add_alias_domain($link, $postarray) {
 		header("Location: do.php?event=".base64_encode("Target domain name invalid"));
 		die("Target domain name invalid");
 	}
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$target_domain'"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$target_domain'"))) {
 		header("Location: do.php?event=".base64_encode("Target domain $target_domain not found"));
 		die("Target domain $target_domain not found");
 	}
-	if (mysqli_result(mysqli_query($link, "SELECT alias_domain FROM alias_domain where alias_domain='$alias_domain'"))) { 
+	if (mysqli_result(mysqli_query($link, "SELECT alias_domain FROM alias_domain where alias_domain='$alias_domain'"))) {
 		header("Location: do.php?event=".base64_encode("Alias domain exists"));
 		die("Alias domain exists");
 	}
@@ -500,13 +500,13 @@ function mailbox_add_mailbox($link, $postarray) {
 
 	global $logged_in_role;
 	global $logged_in_as;
-	
+
 	if (empty($default_cal) || empty($default_card)) {
 		header("Location: do.php?event=".base64_encode("Calendar and address book cannot be empty"));
 		die("Calendar and address book cannot be empty");
 	}
 
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
@@ -518,12 +518,12 @@ function mailbox_add_mailbox($link, $postarray) {
 		header("Location: do.php?event=".base64_encode("Mailbox alias must be alphanumeric"));
 		die("Mailbox alias must be alphanumeric");
 	}
-	if (!is_numeric($quota_m)) { 
+	if (!is_numeric($quota_m)) {
 		header("Location: do.php?event=".base64_encode("Quota is not numeric"));
-		die("Quota is not numeric"); 
+		die("Quota is not numeric");
 	}
 	if (!empty($password) && !empty($password2)) {
-		if ($password != $password2) { 
+		if ($password != $password2) {
 			header("Location: do.php?event=".base64_encode("Password mismatch"));
 			die("Password mismatch");
 		}
@@ -549,11 +549,11 @@ function mailbox_add_mailbox($link, $postarray) {
 	}
 	if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
 		header("Location: do.php?event=".base64_encode("Mail address is invalid"));
-		die("Mail address is invalid"); 
+		die("Mail address is invalid");
 	}
 	if ($quota_m > $maxquota_m) {
 		header("Location: do.php?event=".base64_encode("Quota over max. quota limit ($maxquota_m M)"));
-		die("Quota over max. quota limit ($maxquota_m M)"); 
+		die("Quota over max. quota limit ($maxquota_m M)");
 	}
 	if (($quota_m_in_use+$quota_m) > $domain_quota_m) {
 		$quota_left_m = ($domain_quota_m - $quota_m_in_use);
@@ -561,7 +561,7 @@ function mailbox_add_mailbox($link, $postarray) {
 		die("Quota exceeds quota left ($quota_left_m M)");
 	}
 	if (isset($_POST['active']) && $_POST['active'] == "on") { $active = "1"; } else { $active = "0"; }
-	$create_user = "INSERT INTO mailbox (username, password, name, maildir, quota, local_part, domain, created, modified, active) 
+	$create_user = "INSERT INTO mailbox (username, password, name, maildir, quota, local_part, domain, created, modified, active)
 			VALUES ('$username', '$password_sha512c', '$name', '$maildir', '$quota_b', '$local_part', '$domain', now(), now(), '$active');";
 	$create_user .= "INSERT INTO quota2 (username, bytes, messages)
 			VALUES ('$username', '', '');";
@@ -569,16 +569,16 @@ function mailbox_add_mailbox($link, $postarray) {
 			VALUES ('$username', '$username', '$domain', now(), now(), '$active');";
 	$create_user .= "INSERT INTO users (username, digesta1)
 			VALUES('$username', MD5(CONCAT('$username', ':SabreDAV:', '$password')));";
-	$create_user .= "INSERT INTO principals (uri,email,displayname) 
+	$create_user .= "INSERT INTO principals (uri,email,displayname)
 			VALUES ('principals/$username', '$username', '$name');";
-	$create_user .= "INSERT INTO principals (uri,email,displayname) 
+	$create_user .= "INSERT INTO principals (uri,email,displayname)
 			VALUES ('principals/$username/calendar-proxy-read', null, null);";
 	$create_user .= "INSERT INTO principals (uri,email,displayname)
 			VALUES ('principals/$username/calendar-proxy-write', null, null);";
-	$create_user .= "INSERT INTO addressbooks (principaluri, displayname, uri, description, synctoken) 
+	$create_user .= "INSERT INTO addressbooks (principaluri, displayname, uri, description, synctoken)
 			VALUES ('principals/$username','$default_card','default','','1');";
-	$create_user .= "INSERT INTO calendars (principaluri, displayname, uri, description, components, transparent) 
-			VALUES ('principals/$username','$default_cal','default','','VEVENT,VTODO', '0');";	
+	$create_user .= "INSERT INTO calendars (principaluri, displayname, uri, description, components, transparent)
+			VALUES ('principals/$username','$default_cal','default','','VEVENT,VTODO', '0');";
 	if (!mysqli_multi_query($link, $create_user)) {
 		header("Location: do.php?event=".base64_encode("MySQL query failed"));
 		die("MySQL query failed");
@@ -605,7 +605,7 @@ function mailbox_edit_domain($link, $postarray) {
 	global $logged_in_role;
 	global $logged_in_as;
 
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
@@ -646,7 +646,7 @@ function mailbox_edit_domain($link, $postarray) {
 	$mystring = "UPDATE domain SET modified=now(), backupmx='$backupmx', active='$active', quota='$quota', maxquota='$maxquota', mailboxes='$mailboxes', aliases='$aliases', description='$description' WHERE domain='$domain'";
 	if (!mysqli_query($link, $mystring)) {
 		header("Location: do.php?event=".base64_encode("MySQL query failed"));
-		die("MySQL query failed"); 
+		die("MySQL query failed");
 	}
 	header('Location: do.php?return=success');
 }
@@ -659,7 +659,7 @@ function mailbox_edit_domainadmin($link, $postarray) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
-	array_walk($_POST['domain'], function(&$string) use ($link) { 
+	array_walk($_POST['domain'], function(&$string) use ($link) {
 		$string = mysqli_real_escape_string($link, $string);
 	});
 	$username = mysqli_real_escape_string($link, $_POST['username']);
@@ -671,7 +671,7 @@ function mailbox_edit_domainadmin($link, $postarray) {
 	$mystring = "DELETE FROM domain_admins WHERE username='$username'";
 	if (!mysqli_query($link, $mystring)) {
 		header("Location: do.php?event=".base64_encode("MySQL query failed"));
-		die("MySQL query failed"); 
+		die("MySQL query failed");
 	}
 	foreach ($_POST['domain'] as $domain) {
 		$mystring = "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$username', '$domain', now(), '$active')";
@@ -694,9 +694,9 @@ function mailbox_edit_mailbox($link, $postarray) {
 	$name = mysqli_real_escape_string($link, $_POST['name']);
 	$password = mysqli_real_escape_string($link, $_POST['password']);
 	$password2 = mysqli_real_escape_string($link, $_POST['password2']);
-	if (!is_numeric($quota_m)) { 
+	if (!is_numeric($quota_m)) {
 		header("Location: do.php?event=".base64_encode("Quota not numeric"));
-		die("Quota not numeric"); 
+		die("Quota not numeric");
 	}
 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username))) {
 		header("Location: do.php?event=".base64_encode("Invalid username"));
@@ -710,13 +710,13 @@ function mailbox_edit_mailbox($link, $postarray) {
 	$domain_quota_m = $row_from_domain['quota'];
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
 	if ($quota_m > $maxquota_m) {
 		header("Location: do.php?event=".base64_encode("Quota over max. quota limit ($maxquota_m M)"));
-		die("Quota over max. quota limit ($maxquota_m M)"); 
+		die("Quota over max. quota limit ($maxquota_m M)");
 	}
 	if (($quota_m_in_use-$quota_m_now+$quota_m) > $domain_quota_m) {
 		$quota_left_m = ($domain_quota_m - $quota_m_in_use + $quota_m_now);
@@ -734,7 +734,7 @@ function mailbox_edit_mailbox($link, $postarray) {
 		$password_sha512c = $hash[0];
 		if ($return != "0") {
 			header("Location: do.php?event=".base64_encode("Error creating password hash"));
-			die("Error creating password hash");	
+			die("Error creating password hash");
 		}
 		$update_user = "UPDATE mailbox SET modified=now(), active='$active', password='$password_sha512c', name='$name', quota='$quota_b' WHERE username='$username';";
 		$update_user .= "UPDATE users SET digesta1=MD5(CONCAT('$username', ':SabreDAV:', '$password')) WHERE username='$username';";
@@ -789,13 +789,13 @@ function mailbox_delete_alias($link, $postarray) {
 	$address = mysqli_real_escape_string($link, $_POST['address']);
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM alias WHERE address='$address' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM alias WHERE address='$address' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
 	if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
 		header("Location: do.php?event=".base64_encode("Mail address invalid"));
-		die("Mail address invalid"); 
+		die("Mail address invalid");
 	}
 	$mystring = "DELETE FROM alias WHERE address='$address' AND address NOT IN (SELECT username FROM mailbox)";
 	if (!mysqli_query($link, $mystring)) {
@@ -808,7 +808,7 @@ function mailbox_delete_alias_domain($link, $postarray) {
 	$alias_domain = mysqli_real_escape_string($link, $_POST['alias_domain']);
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT target_domain FROM alias_domain WHERE alias_domain='$alias_domain' AND (target_domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT target_domain FROM alias_domain WHERE alias_domain='$alias_domain' AND (target_domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
@@ -827,13 +827,13 @@ function mailbox_delete_mailbox($link, $postarray) {
 	$username = mysqli_real_escape_string($link, $_POST['username']);
 	global $logged_in_role;
 	global $logged_in_as;
-	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) { 
+	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')"))) {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
 	}
 	if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
 		header("Location: do.php?event=".base64_encode("Mail address invalid"));
-		die("Mail address invalid"); 
+		die("Mail address invalid");
 	}
 	$delete_user = "DELETE FROM alias WHERE goto='$username';";
 	$delete_user .= "DELETE FROM quota2 WHERE username='$username';";
@@ -882,7 +882,7 @@ function set_admin_account($link, $postarray) {
 		$password = $hash[0];
 		if ($return != "0") {
 			header("Location: do.php?event=".base64_encode("Error creating password hash"));
-			die("Error creating password hash");	
+			die("Error creating password hash");
 		}
 		$mystring = "UPDATE admin SET modified=now(), password='$password', username='$name' WHERE username='$name_now'";
 		if (!mysqli_query($link, $mystring)) {
@@ -909,7 +909,7 @@ function set_user_account($link, $postarray) {
 	$password_old = mysqli_real_escape_string($link, $_POST['user_old_pass']);
 	$password_new = mysqli_real_escape_string($link, $_POST['user_new_pass']);
 	$password_new2 = mysqli_real_escape_string($link, $_POST['user_new_pass']);
-	
+
 	if ($_SESSION['mailcow_cc_role'] != "user") {
 		header("Location: do.php?event=".base64_encode("Permission denied"));
 		die("Permission denied");
@@ -925,13 +925,13 @@ function set_user_account($link, $postarray) {
 		}
 		if (!check_login($link, $name_now, $password_old) == "user") {
 			header("Location: do.php?event=".base64_encode("Current password incorrect"));
-			die("Current password incorrect");	
+			die("Current password incorrect");
 		}
 		$prep_password = escapeshellcmd($password_new);
 		exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
 		if ($return != "0") {
 			header("Location: do.php?event=".base64_encode("Error creating password hash"));
-			die("Error creating password hash");	
+			die("Error creating password hash");
 		}
 		$password_sha512c = $hash[0];
 		$update_user = "UPDATE mailbox SET password='$password_sha512c' WHERE username='$name_now';";
@@ -952,7 +952,7 @@ function set_user_account($link, $postarray) {
 }
 function set_fetch_mail($link, $postarray) {
 	global $logged_in_as;
-	$logged_in_as = escapeshellcmd($logged_in_as); 
+	$logged_in_as = escapeshellcmd($logged_in_as);
 	$imap_host = explode(":", escapeshellcmd($_POST['imap_host']))[0];
 	$imap_port = explode(":", escapeshellcmd($_POST['imap_host']))[1];
 	$imap_username = escapeshellcmd($_POST['imap_username']);
@@ -966,7 +966,7 @@ function set_fetch_mail($link, $postarray) {
 	if ($imap_enc != "/ssl" && $imap_enc != "/tls" && $imap_enc != "none") {
 		header("Location: do.php?event=".base64_encode("Invalid encryption mechanism"));
 		die("Invalid encryption mechanism");
-	} 
+	}
 	if ($imap_enc == "none") {
 		$imap_enc = "";
 	}
@@ -1032,7 +1032,7 @@ function add_domain_admin($link, $postarray) {
 	$username = mysqli_real_escape_string($link, $_POST['username']);
 	$password = mysqli_real_escape_string($link, $_POST['password']);
 	$password2 = mysqli_real_escape_string($link, $_POST['password2']);
-	array_walk($_POST['domain'], function(&$string) use ($link) { 
+	array_walk($_POST['domain'], function(&$string) use ($link) {
 		$string = mysqli_real_escape_string($link, $string);
 	});
 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)) || empty ($username)) {
@@ -1053,18 +1053,19 @@ function add_domain_admin($link, $postarray) {
 		$password = $hash[0];
 		if ($return != "0") {
 			header("Location: do.php?event=".base64_encode("Error creating password hash"));
-			die("Error creating password hash");	
+			die("Error creating password hash");
 		}
 		if (isset($_POST['active']) && $_POST['active'] == "on") { $active = "1"; } else { $active = "0"; }
+
 		$mystring = "DELETE FROM domain_admins WHERE username='$username'";
 		if (!mysqli_query($link, $mystring)) {
 			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed"); 
+			die("MySQL query failed");
 		}
 		$mystring = "DELETE FROM admin WHERE username='$username'";
 		if (!mysqli_query($link, $mystring)) {
 			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed"); 
+			die("MySQL query failed");
 		}
 		foreach ($_POST['domain'] as $domain) {
 			$mystring = "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$username', '$domain', now(), '$active')";

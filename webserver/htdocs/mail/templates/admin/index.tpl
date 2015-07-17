@@ -54,6 +54,7 @@
 							<th>Action</th>
 						</tr>
 					</thead>
+					<tbody>
 						{foreach $domain_admins as $domain_admin}
 							<tr>
 								<td>{$domain_admin['username']}</td>
@@ -62,7 +63,6 @@
 								<td><a href="/deteledomainadmin/{$domain_admin['username']}">delete</a> | <a href="/editdomainadmin/{$domain_admin['username']}">edit</a></td>
 							</tr>
 						{/foreach}
-					<tbody>
 					</tbody>
 				</table>
 			</div>
@@ -129,7 +129,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Backup mail</div>
 		<div class="panel-body">
-			<form action="/save" method="post">
+			<form action="/backup_mail" method="post">
 				<div class="form-group">
 					<label class="control-label col-sm-4" for="location">Location <small>(will be created if missing)</small>:</label>
 					<div class="col-sm-8">
@@ -146,9 +146,9 @@
 					<label class="control-label col-sm-4" for="runtime">Runtime</label>
 					<div class="col-sm-8">
 						<select style="width:50%" name="runtime" size="3">
-							<option <?php if (return_mailcow_config("backup_runtime") == "hourly") { echo "selected"; } ?>>hourly</option>
-							<option <?php if (return_mailcow_config("backup_runtime") == "daily") { echo "selected"; } ?>>daily</option>
-							<option <?php if (return_mailcow_config("backup_runtime") == "monthly") { echo "selected"; } ?>>monthly</option>
+							<option>>hourly</option>
+							<option>>daily</option>
+							<option>>monthly</option>
 						</select>
 					</div>
 				</div>
@@ -165,7 +165,6 @@
 								{else}
 									<option value="{$mailbox}">{$mailbox}</option>
 								{/if *}
-
 								<option value="{$mailbox}">{$mailbox}</option>
 							{/foreach}
 						</select>
@@ -212,14 +211,14 @@ Enter "DISABLED" to disable this feature.</pre>
 
 					<div class="radio">
 						<label>
-							<input type="radio" name="vfilter" id="vfilter_reject_button" value="reject" <?php if (!return_mailcow_config("vfilter")) { echo "checked"; } ?>>
+							<input type="radio" name="vfilter" id="vfilter_reject_button" value="reject" {if !return_mailcow_config('vfilter')}checked{/if}>
 							Reject attachments with a dangerous file extension
 						</label>
 					</div>
 
 					<div class="radio">
 						<label>
-							<input type="radio" name="vfilter" id="vfilter_scan_button" value="filter" <?php echo return_mailcow_config("vfilter") ?>>
+							<input type="radio" name="vfilter" id="vfilter_scan_button" value="filter" {return_mailcow_config('vfilter')}>
 							Scan attachments with ClamAV and/or upload to VirusTotal
 						</label>
 					</div>

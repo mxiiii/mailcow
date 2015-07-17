@@ -85,10 +85,12 @@ class AdminController extends BaseController
 		{
 			loc('admin', ['warning', 'Die eingegebenen Passwörter stimmen nicht überein.']);
 		}
+	}
 
-		echo '<pre>';
-		print_r($_POST);
-		die();
+
+	public function backup_mail()
+	{
+		set_mailcow_config('backup', $_POST);
 	}
 }
 ?>
