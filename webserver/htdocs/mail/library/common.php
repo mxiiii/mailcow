@@ -86,4 +86,7 @@ Router::addRoute('/save_blacklist', 'post', 'admin', 'save_blacklist');
 Router::addRoute('/save_privacy', 'post', 'admin', 'save_privacy');
 Router::addRoute('/save_dkim', 'post', 'admin', 'save_dkim');
 Router::addRoute('/save_message_size', 'post', 'admin', 'save_message_size');
+
+// Mailbox GET Routes
+Router::addRoute('/mailbox', 'get', 'mailbox', 'index', true);
 ?>
