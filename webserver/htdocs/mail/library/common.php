@@ -64,17 +64,21 @@ if(isset($_SERVER['REQUEST_URI']))
  * @param string ACTION 		Action die im Controller aufgerufen werden soll
  *
 */
+
+// Standard Routes
 Router::addRoute('/', 'get', 'welcome', 'index');
 Router::addRoute('/admin', 'get', 'admin', 'index', true);
 Router::addRoute('/user', 'get', 'user', 'index');
 Router::addRoute('/login', 'get', 'user', 'login');
 Router::addRoute('/logout', 'get', 'user', 'logout');
 
-Router::addRoute('/save', 'post', 'admin', 'save');
+// User GET Routes
 Router::addRoute('/do_login', 'post', 'user', 'doLogin');
 Router::addRoute('/set_fetch_mail', 'post', 'user', 'set_fetch_mail');
 Router::addRoute('/change_password', 'post', 'user', 'change_password');
 
+// Admin POST Routes
+Router::addRoute('/save', 'post', 'admin', 'save');
 Router::addRoute('/add_domain_admin', 'post', 'admin', 'add_domain_admin');
 Router::addRoute('/backup_mail', 'post', 'admin', 'backup_mail');
 Router::addRoute('/save_attachments', 'post', 'admin', 'save_attachments');
@@ -82,6 +86,4 @@ Router::addRoute('/save_blacklist', 'post', 'admin', 'save_blacklist');
 Router::addRoute('/save_privacy', 'post', 'admin', 'save_privacy');
 Router::addRoute('/save_dkim', 'post', 'admin', 'save_dkim');
 Router::addRoute('/save_message_size', 'post', 'admin', 'save_message_size');
-
-// check_login('admin', 'demo');
 ?>
