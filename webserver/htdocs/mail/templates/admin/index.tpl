@@ -199,7 +199,7 @@
 	<div class="panel panel-default">
 		<div class="panel-heading">Attachments</div>
 		<div class="panel-body">
-			<form action="/save" method="post">
+			<form action="/save_attachments" method="post">
 				<div class="form-group">
 					<p>Provide a list of dangerous file types. Please take care of the formatting.</p>
 					<input class="form-control" type="text" id="ext" name="ext" value="{return_mailcow_config("extlist")}">
@@ -310,7 +310,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Sender Blacklist</div>
 		<div class="panel-body">
-			<form action="/save" method="post">
+			<form action="/save_blacklist" method="post">
 				<div class="form-group">
 					<p>Specify a list of senders or domains to blacklist access:</p>
 					<textarea class="form-control" rows="6" name="sender">{return_mailcow_config("senderaccess")}</textarea>
@@ -327,7 +327,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Privacy</div>
 		<div class="panel-body">
-			<form action="/save" method="post">
+			<form action="/save_privacy" method="post">
 				<div class="form-group">
 					<p>This option enables a PCRE table to remove "User-Agent", "X-Enigmail", "X-Mailer", "X-Originating-IP" and replaces "Received: from" headers with localhost/127.0.0.1.</p>
 					<div class="checkbox">
@@ -352,7 +352,7 @@ Enter "DISABLED" to disable this feature.</pre>
 			<p>
 				<strong>DKIM signing will not be used when when "Anonymize outgoing mail" is enabled.</strong>
 			</p>
-			<form action="/save" method="post">
+			<form action="/save_dkim" method="post">
 				<h4>Active keys</h4>
 				{opendkim_table()}
 
@@ -386,7 +386,7 @@ Enter "DISABLED" to disable this feature.</pre>
 	<div class="panel panel-default">
 		<div class="panel-heading">Message Size</div>
 		<div class="panel-body">
-			<form action="/save" class="form-inline" method="post">
+			<form action="/save_message_size" class="form-inline" method="post">
 				<p>Current message size limitation: <strong>{return_mailcow_config("maxmsgsize")}MB</strong></p>
 				<p>This changes values in PHP, Nginx and Postfix. Services will be reloaded.</p>
 				<div class="form-group">

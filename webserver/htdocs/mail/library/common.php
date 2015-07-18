@@ -77,6 +77,11 @@ Router::addRoute('/change_password', 'post', 'user', 'change_password');
 
 Router::addRoute('/add_domain_admin', 'post', 'admin', 'add_domain_admin');
 Router::addRoute('/backup_mail', 'post', 'admin', 'backup_mail');
+Router::addRoute('/save_attachments', 'post', 'admin', 'save_attachments');
+Router::addRoute('/save_blacklist', 'post', 'admin', 'save_blacklist');
+Router::addRoute('/save_privacy', 'post', 'admin', 'save_privacy');
+Router::addRoute('/save_dkim', 'post', 'admin', 'save_dkim');
+Router::addRoute('/save_message_size', 'post', 'admin', 'save_message_size');
 
 // check_login('admin', 'demo');
 ?>

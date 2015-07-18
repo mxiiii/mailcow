@@ -92,5 +92,73 @@ class AdminController extends BaseController
 	{
 		set_mailcow_config('backup', $_POST);
 	}
+
+	public function save_attachments()
+	{
+		if(isset($_POST['vfilter']) && $_POST['vfilter'] == 'filter')
+		{
+			set_mailcow_config('extlist', $_POST['ext'], 'filter');
+		}
+		else
+		{
+			set_mailcow_config('extlist', $_POST['ext'], 'reject');
+		}
+
+		if(isset($_POST['virustotalcheckonly']) && $_POST['virustotalcheckonly'] == 'on')
+		{
+			set_mailcow_config('vtupload', '0');
+		}
+		else
+		{
+			set_mailcow_config('vtupload', '1');
+		}
+
+		if(isset($_POST['virustotalenable']) && $_POST['virustotalenable'] == 'on')
+		{
+			set_mailcow_config('vtenable', '1');
+		}
+		else
+		{
+			set_mailcow_config('vtenable', '0');
+		}
+
+		if(isset($_POST['clamavenable']) && $_POST['clamavenable'] == 'on')
+		{
+			set_mailcow_config('cavenable', '1');
+		}
+		else
+		{
+			set_mailcow_config('cavenable', '0');
+		}
+
+		postfix_reload();
+	}
+
+	public function save_blacklist()
+	{
+		set_mailcow_config('senderaccess', $_POST['sender']);
+		postfix_reload();
+	}
+
+	public function save_privacy()
+	{
+		if(isset($_POST['anonymize_']))
+		{
+			if (!isset($_POST['anonymize'])) { $_POST['anonymize'] = ""; }
+			set_mailcow_config('anonymize', $_POST['anonymize']);
+			postfix_reload();
+		}
+
+	}
+
+	public function save_dkim()
+	{
+		opendkim_table('add', $_POST['dkim_selector'] . '_' . $_POST['dkim_domain']);
+	}
+
+	public function save_message_size()
+	{
+		set_mailcow_config('maxmsgsize', $_POST);
+	}
 }
 ?>

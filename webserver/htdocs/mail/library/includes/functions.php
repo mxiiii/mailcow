@@ -181,8 +181,7 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 			file_put_contents($file, "MBOX=(".PHP_EOL, FILE_APPEND | LOCK_EX);
 			foreach ($v['mailboxes'] as $mbox) {
 				if (!filter_var($mbox, FILTER_VALIDATE_EMAIL)) {
-					loc('admin');
-					die("Mail address format invalid");
+					loc('admin', ['error', 'Mail address format invalid']);
 				}
 				file_put_contents($file, $mbox.PHP_EOL, FILE_APPEND | LOCK_EX);
 			}
@@ -190,8 +189,7 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 			file_put_contents($file, "LOCATION=".$v['location'].PHP_EOL, FILE_APPEND | LOCK_EX);
 			exec("sudo /usr/local/sbin/mc_inst_cron", $out, $return);
 			if ($return != "0") {
-				loc('admin');
-				die("Error setting up cronjob");
+				loc('admin', ['error', 'Error setting up cronjob']);
 			}
 			loc('admin');
 			break;
@@ -228,8 +226,7 @@ function set_mailcow_config($s, $v = "", $vext = "") {
 		case "maxmsgsize":
 			exec("sudo /usr/local/sbin/mc_msg_size $v", $out, $return);
 			if ($return != "0") {
-				loc('admin');
-				die("Error setting max. message size");
+				loc('admin', ['error', 'Error setting max. message size']);
 			}
 			loc('admin');
 			break;
@@ -301,31 +298,27 @@ function opendkim_table($action = "show", $which = "") {
 			break;
 		case "delete":
 			if(!ctype_alnum(str_replace(array("_", "-", "."), "", $which))) {
-				header("Location: do.php?event=".base64_encode("Invalid format"));
-				die("Invalid format");
+				loc('admin', ['error', 'Invalid format']);
 			}
 			$selector = explode("_", $which)[0];
 			$domain = explode("_", $which)[1];
 			exec("sudo /usr/local/bin/mc-dkim-ctrl del $selector $domain", $hash, $return);
 			if ($return != "0") {
-				header("Location: do.php?event=".base64_encode("Cannot delete domain record. Does it exist?"));
-				die("Cannot delete domain record. Does it exist?");
+				loc('admin', ['error', 'Cannot delete domain record. Does it exist?']);
 			}
-			header('Location: do.php?return=success');
+			loc('admin', ['success', 'Successfull']);
 			break;
 		case "add":
 			$selector = explode("_", $which)[0];
 			$domain = explode("_", $which)[1];
 			if(!ctype_alnum($selector) || !ctype_alnum(str_replace(array("-", "."), "", $domain))) {
-				header("Location: do.php?event=".base64_encode("Invalid format"));
-				die("Invalid format");
+				loc('admin', ['error', 'Invalid format']);
 			}
 			exec("sudo /usr/local/bin/mc-dkim-ctrl add $selector $domain", $hash, $return);
 			if ($return != "0") {
-				header("Location: do.php?event=".base64_encode("Cannot add this domain. Does it already exist?"));
-				die("Cannot add this domain. Does it already exist?");
+				loc('admin', ['error', 'Cannot add this domain. Does it already exist?']);
 			}
-			header('Location: do.php?return=success');
+			loc('admin', ['success', 'Successfull']);
 			break;
 	}
 }
