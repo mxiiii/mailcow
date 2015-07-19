@@ -14,7 +14,7 @@
 <link href="{$css_asset_path}ripples.min.css" rel="stylesheet">
 <style>
 .navbar.navbar, .navbar-default.navbar {
-  background-color: #914063;
+  background-color: #463168;
 }
 a, a:hover, a:focus {
   color: #333;
