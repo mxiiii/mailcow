@@ -146,9 +146,9 @@
 					<label class="control-label col-sm-4" for="runtime">Runtime</label>
 					<div class="col-sm-8">
 						<select style="width:50%" name="runtime" size="3">
-							<option>>hourly</option>
-							<option>>daily</option>
-							<option>>monthly</option>
+							<option>hourly</option>
+							<option>daily</option>
+							<option>monthly</option>
 						</select>
 					</div>
 				</div>
