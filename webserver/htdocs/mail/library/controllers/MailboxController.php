@@ -20,27 +20,23 @@ class MailboxController extends BaseController
 		extract($postarray);
 		if ($_SESSION['mailcow_cc_role'] != 'admin')
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if ($maxquota > $quota)
 		{
-			header("Location: do.php?event=".base64_encode("Max. size per mailbox can not be greater than domain quota"));
-			die("Max. size per mailbox can not be greater than domain quota");
+			loc('mailbox', ['error', 'Max. size per mailbox can not be greater than domain quota']);
 		}
 		isset($active) ? $active = '1' : $active = '0';
 		isset($backupmx) ? $backupmx = '1' : $backupmx = '0';
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)))
 		{
-			header("Location: do.php?event=".base64_encode("Domain name invalid"));
-			die('Domain name invalid');
+			loc('mailbox', ['error', 'Domain name invalid']);
 		}
 		foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data)
 		{
 			if (!is_numeric($data))
 			{
-				header('Location: do.php?event='.base64_encode(''.$data.' is not numeric'));
-				die($data.' is not numeric');
+				loc('mailbox', ['error', 'Invalid data type']);
 			}
 		}
 		$link->insert('domain', [
@@ -58,50 +54,38 @@ class MailboxController extends BaseController
 		]);
 		if (!empty($link->error()[2]))
 		{
-			header('Location: do.php?event='.base64_encode($link->error()[2]));
-			die($link->error()[2]);
+			loc('mailbox', ['error', 'MySQL Error']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Domain has been successfully added']);
 	}
 	public function add_alias()
 	{
 		$address = mysqli_real_escape_string($link, $_POST['address']);
 		$goto = mysqli_real_escape_string($link, $_POST['goto']);
+		$active = mysqli_real_escape_string($link, $_POST['active']);
 		$domain = substr($address, strpos($address, '@')+1);
 		global $logged_in_role;
 		global $logged_in_as;
 		if (empty($domain))
 		{
-			header("Location: do.php?event=".base64_encode("Domain cannot be empty"));
-			die("Domain cannot by empty");
+			loc('mailbox', ['error', 'Domain cannot by empty']);
 		}
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied or invalid format"));
-			die("Permission denied or invalid format");
+			loc('mailbox', ['error', 'Permission denied or invalid format']);
 		}
-		if (isset($_POST['active']) && $_POST['active'] == "on")
-		{
-			$active = "1";
-		}
-		else
-		{
-			$active = "0";
-		}
+		isset($active) ? $active = '1' : $active = '0';
 		if ((!filter_var($address, FILTER_VALIDATE_EMAIL) && empty($domain)) || !filter_var($goto, FILTER_VALIDATE_EMAIL))
 		{
-			header("Location: do.php?event=".base64_encode("Mail address format invalid"));
-			die("Mail address format invalid");
+			loc('mailbox', ['error', 'Mail address format invalid']);
 		}
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain'")))
 		{
-			header("Location: do.php?event=".base64_encode("Domain $domain not found"));
-			die("Domain $domain not found");
+			loc('mailbox', ['error', 'Domain not found']);
 		}
 		if (!mysqli_result(mysqli_query($link, "SELECT username FROM mailbox WHERE username='$goto'")))
 		{
-			header("Location: do.php?event=".base64_encode("Destination address unknown"));
-			die("Destination address unknown");
+			loc('mailbox', ['error', 'Destination address unknown']);
 		}
 		if (!filter_var($address, FILTER_VALIDATE_EMAIL))
 		{
@@ -113,69 +97,54 @@ class MailboxController extends BaseController
 		}
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Alias has been successfully added']);
 	}
 	public function add_domain_alias()
 	{
 		$alias_domain = mysqli_real_escape_string($link, $_POST['alias_domain']);
 		$target_domain = mysqli_real_escape_string($link, $_POST['target_domain']);
+		$active = mysqli_real_escape_string($link, $_POST['active']);
 		global $logged_in_role;
 		global $logged_in_as;
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$target_domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
-		if (isset($_POST['active']) && $_POST['active'] == "on")
-		{
-			$active = "1";
-		}
-		else
-		{
-			$active = "0";
-		}
+		isset($active) ? $active = '1' : $active = '0';
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)) || empty ($alias_domain))
 		{
-			header("Location: do.php?event=".base64_encode("Alias domain name invalid"));
-			die("Alias domain name invalid");
+			loc('mailbox', ['error', 'Alias domain name invalid']);
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $target_domain)) || empty ($target_domain))
 		{
-			header("Location: do.php?event=".base64_encode("Target domain name invalid"));
-			die("Target domain name invalid");
+			loc('mailbox', ['error', 'Target domain name invalid']);
 		}
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$target_domain'")))
 		{
-			header("Location: do.php?event=".base64_encode("Target domain $target_domain not found"));
-			die("Target domain $target_domain not found");
+			loc('mailbox', ['error', 'Target domain not found']);
 		}
 		if (mysqli_result(mysqli_query($link, "SELECT alias_domain FROM alias_domain where alias_domain='$alias_domain'")))
 		{
-			header("Location: do.php?event=".base64_encode("Alias domain exists"));
-			die("Alias domain exists");
+			loc('mailbox', ['error', 'Alias domain exists']);
 		}
 		$mystring = "INSERT INTO alias_domain (alias_domain, target_domain, created, modified, active) VALUE ('$alias_domain', '$target_domain', now(), now(), '$active')";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Domain alias has been successfully added']);
 	}
 	public function edit_domain_admin()
 	{
 		if (empty($_POST['domain']))
 		{
-			header("Location: do.php?event=".base64_encode("Please assign a domain"));
-			die("Please assign a domain");
+			loc('mailbox', ['error', 'Please assign a domain']);
 		}
 		if ($_SESSION['mailcow_cc_role'] != "admin")
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		array_walk($_POST['domain'], function(&$string) use ($link)
 		{
@@ -184,8 +153,7 @@ class MailboxController extends BaseController
 		$username = mysqli_real_escape_string($link, $_POST['username']);
 		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 		{
-			header("Location: do.php?event=".base64_encode("Invalid username"));
-			die("Invalid username");
+			loc('mailbox', ['error', 'Invalid username']);
 		}
 		if (isset($_POST['active']) && $_POST['active'] == "on")
 		{
@@ -198,25 +166,22 @@ class MailboxController extends BaseController
 		$mystring = "DELETE FROM domain_admins WHERE username='$username'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
 		foreach ($_POST['domain'] as $domain)
 		{
 			$mystring = "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$username', '$domain', now(), '$active')";
 			if (!mysqli_query($link, $mystring))
 			{
-				header("Location: do.php?event=".base64_encode("MySQL query failed"));
-				die("MySQL query failed");
+				loc('mailbox', ['error', 'MySQL query failed']);
 			}
 		}
 		$mystring = "UPDATE admin SET modified=now(), active='$active' where username='$username'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Changes to domain administrator have been saved']);
 	}
 	public function add_mailbox()
 	{
@@ -247,76 +212,62 @@ class MailboxController extends BaseController
 
 		if (empty($default_cal) || empty($default_card))
 		{
-			header("Location: do.php?event=".base64_encode("Calendar and address book cannot be empty"));
-			die("Calendar and address book cannot be empty");
+			loc('mailbox', ['error', 'Calendar and address book cannot be empty']);
 		}
 
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 		{
-			header("Location: do.php?event=".base64_encode("Domain name invalid"));
-			die("Domain name invalid");
+			loc('mailbox', ['error', 'Domain name invalid']);
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $local_part) || empty ($local_part)))
 		{
-			header("Location: do.php?event=".base64_encode("Mailbox alias must be alphanumeric"));
-			die("Mailbox alias must be alphanumeric");
+			loc('mailbox', ['error', 'Mailbox alias must be alphanumeric']);
 		}
 		if (!is_numeric($quota_m))
 		{
-			header("Location: do.php?event=".base64_encode("Quota is not numeric"));
-			die("Quota is not numeric");
+			loc('mailbox', ['error', 'Quota is not numeric']);
 		}
 		if (!empty($password) && !empty($password2))
 		{
 			if ($password != $password2)
 			{
-				header("Location: do.php?event=".base64_encode("Password mismatch"));
-				die("Password mismatch");
+				loc('mailbox', ['error', 'Password mismatch']);
 			}
 			$prep_password = escapeshellcmd($password);
 			exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
 			$password_sha512c = $hash[0];
 			if ($return != "0")
 			{
-				header("Location: do.php?event=".base64_encode("Error creating password hash"));
-				die("Error creating password hash");
+				loc('mailbox', ['error', 'Error creating password hash']);
 			}
 		}
 		else
 		{
-			header("Location: do.php?event=".base64_encode("Password cannot be empty"));
-			die("Password cannot be empty");
+			loc('mailbox', ['error', 'Password cannot be empty']);
 		}
 		if ($num_mailboxes >= $num_max_mailboxes)
 		{
-			header("Location: do.php?event=".base64_encode("Mailbox quota exceeded ($num_mailboxes of $num_max_mailboxes)"));
-			die("Mailbox quota exceeded ($num_mailboxes of $num_max_mailboxes)");
+			loc('mailbox', ['error', 'Mailbox quota exceeded']);
 		}
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$domain'")))
 		{
-			header("Location: do.php?event=".base64_encode("Domain $domain not found"));
-			die("Domain $domain not found");
+			loc('mailbox', ['error', 'Domain not found']);
 		}
 		if (!filter_var($username, FILTER_VALIDATE_EMAIL))
 		{
-			header("Location: do.php?event=".base64_encode("Mail address is invalid"));
-			die("Mail address is invalid");
+			loc('mailbox', ['error', 'Mail address is invalid']);
 		}
 		if ($quota_m > $maxquota_m)
 		{
-			header("Location: do.php?event=".base64_encode("Quota over max. quota limit ($maxquota_m M)"));
-			die("Quota over max. quota limit ($maxquota_m M)");
+			loc('mailbox', ['error', 'Quota over max. quota limit']);
 		}
 		if (($quota_m_in_use+$quota_m) > $domain_quota_m)
 		{
-			$quota_left_m = ($domain_quota_m - $quota_m_in_use);
-			header("Location: do.php?event=".base64_encode("Quota exceeds quota left ($quota_left_m M)"));
-			die("Quota exceeds quota left ($quota_left_m M)");
+			loc('mailbox', ['error', 'Quota exceeds quota left']);
 		}
 		if (isset($_POST['active']) && $_POST['active'] == "on")
 		{
@@ -346,14 +297,13 @@ class MailboxController extends BaseController
 				VALUES ('principals/$username','$default_cal','default','','VEVENT,VTODO', '0');";
 		if (!mysqli_multi_query($link, $create_user))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
 		while ($link->next_result())
 		{
 			if (!$link->more_results()) break;
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Mailbox has been successfully added']);
 	}
 	public function edit_domain()
 	{
@@ -375,47 +325,39 @@ class MailboxController extends BaseController
 
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		$numeric_array = array($aliases, $mailboxes, $maxquota, $quota);
 		foreach ($numeric_array as $numeric)
 		{
 			if (!is_numeric($mailboxes))
 			{
-				header("Location: do.php?event=".base64_encode("$numeric must be numeric"));
-				die("$numeric must be numeric");
+				loc('mailbox', ['error', 'Invalid data type']);
 			}
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 		{
-			header("Location: do.php?event=".base64_encode("Domain name invalid"));
-			die("Domain name invalid");
+			loc('mailbox', ['error', 'Domain name invalid']);
 		}
 		if ($maxquota > $quota)
 		{
-			header("Location: do.php?event=".base64_encode("Max. size per mailbox can not be greater than domain quota"));
-			die("Max. size per mailbox can not be greater than domain quota");
+			loc('mailbox', ['error', 'Max. size per mailbox cannot be greater than domain quota.']);
 		}
 		if ($maxquota_in_use > $maxquota)
 		{
-			header("Location: do.php?event=".base64_encode("Max. size per mailbox must be greater than or equal to $maxquota_in_use"));
-			die("Max. quota per mailbox must be greater than or equal to $maxquota_in_use");
+			loc('mailbox', ['error', 'Max. quota per mailbox must be greater than or equal to quota in use.']);
 		}
 		if ($domain_quota_m_in_use > $quota)
 		{
-			header("Location: do.php?event=".base64_encode("Domain quota must be greater than or equal to $domain_quota_m_in_use"));
-			die("Max. quota must be greater than or equal to $domain_quota_m_in_use");
+			loc('mailbox', ['error', 'Max. quota must be greater than or equal to domain quota in use.']);
 		}
 		if ($mailboxes_in_use > $mailboxes)
 		{
-			header("Location: do.php?event=".base64_encode("Max. mailboxes must be greater than or equal to $mailboxes_in_use"));
-			die("Max. mailboxes must be greater than or equal to $mailboxes_in_use");
+			loc('mailbox', ['error', 'Max. mailboxes must be greater than or equal to mailboxes in use.']);
 		}
 		if ($aliases_in_use > $aliases)
 		{
-			header("Location: do.php?event=".base64_encode("Max. aliases must be greater than or equal to $aliases_in_use"));
-			die("Max. aliases must be greater than or equal to $aliases_in_use");
+			loc('mailbox', ['error', 'Max. aliases must be greater than or equal to aliases in use.']);
 		}
 		if (isset($_POST['active']) && $_POST['active'] == "on")
 		{
@@ -436,10 +378,9 @@ class MailboxController extends BaseController
 		$mystring = "UPDATE domain SET modified=now(), backupmx='$backupmx', active='$active', quota='$quota', maxquota='$maxquota', mailboxes='$mailboxes', aliases='$aliases', description='$description' WHERE domain='$domain'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Changes to domain have been saved']);
 	}
 	public function edit_mailbox()
 	{
@@ -451,13 +392,11 @@ class MailboxController extends BaseController
 		$password2 = mysqli_real_escape_string($link, $_POST['password2']);
 		if (!is_numeric($quota_m))
 		{
-			header("Location: do.php?event=".base64_encode("Quota not numeric"));
-			die("Quota not numeric");
+			loc('mailbox', ['error', 'Quota must be numeric']);
 		}
 		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 		{
-			header("Location: do.php?event=".base64_encode("Invalid username"));
-			die("Invalid username");
+			loc('mailbox', ['error', 'Invalid username']);
 		}
 		$domain = mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username'"));
 		$quota_m_now = mysqli_result(mysqli_query($link, "SELECT coalesce(round(sum(quota)/1048576), 0) as quota FROM mailbox WHERE username='$username'"));
@@ -469,19 +408,15 @@ class MailboxController extends BaseController
 		global $logged_in_as;
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if ($quota_m > $maxquota_m)
 		{
-			header("Location: do.php?event=".base64_encode("Quota over max. quota limit ($maxquota_m M)"));
-			die("Quota over max. quota limit ($maxquota_m M)");
+			loc('mailbox', ['error', 'Quota over max. quota limit']);
 		}
 		if (($quota_m_in_use-$quota_m_now+$quota_m) > $domain_quota_m)
 		{
-			$quota_left_m = ($domain_quota_m - $quota_m_in_use + $quota_m_now);
-			header("Location: do.php?event=".base64_encode("Quota exceeds quota left (max. $quota_left_m M)"));
-			die("Quota exceeds quota left (max. $quota_left_m M)");
+			loc('mailbox', ['error', 'Quota exceeds quota left']);
 		}
 		if (isset($_POST['active']) && $_POST['active'] == "on")
 		{
@@ -495,39 +430,35 @@ class MailboxController extends BaseController
 		{
 			if ($password != $password2)
 			{
-				header("Location: do.php?event=".base64_encode("Password mismatch"));
-				die("Password mismatch");
+				loc('mailbox', ['error', 'Password mismatch']);
 			}
 			$prep_password = escapeshellcmd($password);
 			exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
 			$password_sha512c = $hash[0];
 			if ($return != "0")
 			{
-				header("Location: do.php?event=".base64_encode("Error creating password hash"));
-				die("Error creating password hash");
+				loc('mailbox', ['error', 'Error creating password hash']);
 			}
 			$update_user = "UPDATE mailbox SET modified=now(), active='$active', password='$password_sha512c', name='$name', quota='$quota_b' WHERE username='$username';";
 			$update_user .= "UPDATE users SET digesta1=MD5(CONCAT('$username', ':SabreDAV:', '$password')) WHERE username='$username';";
 			if (!mysqli_multi_query($link, $update_user))
 			{
-				header("Location: do.php?event=".base64_encode("MySQL query failed"));
-				die("MySQL query failed");
+				loc('mailbox', ['error', 'MySQL query failed']);
 			}
 			while ($link->next_result())
 			{
 				if (!$link->more_results()) break;
 			}
-			header('Location: do.php?return=success');
+			loc('mailbox', ['success', 'Changes to mailbox have been saved']);
 		}
 		$mystring = "UPDATE mailbox SET modified=now(), active='$active', name='$name', quota='$quota_b' WHERE username='$username'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
 		else
 		{
-			header('Location: do.php?return=success');
+			loc('mailbox', ['success', 'Changes to mailbox have been saved']);
 		}
 	}
 	public function delete_domain()
@@ -535,36 +466,31 @@ class MailboxController extends BaseController
 		$domain = mysqli_real_escape_string($link, $_POST['domain']);
 		if ($_SESSION['mailcow_cc_role'] != "admin")
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 		{
-			header("Location: do.php?event=".base64_encode("Domain name invalid"));
-			die("Domain name invalid");
+			loc('mailbox', ['error', 'Domain name invalid']);
 		}
 		$mystring = "SELECT username FROM mailbox WHERE domain='$domain';";
 		if (!mysqli_query($link, $mystring) || !empty(mysqli_result(mysqli_query($link, $mystring))))
 		{
-			header("Location: do.php?event=".base64_encode("Domain is not empty! Please delete mailboxes first."));
-			die("Domain is not empty! Please delete mailboxes first.");
+			loc('mailbox', ['error', 'Domain is not empty! Please delete mailboxes first.']);
 		}
 		foreach (array("domain", "alias", "domain_admins") as $deletefrom)
 		{
 			$mystring = "DELETE FROM $deletefrom WHERE domain='$domain'";
 			if (!mysqli_query($link, $mystring))
 			{
-				header("Location: do.php?event=".base64_encode("MySQL query failed"));
-				die("MySQL query failed");
+				loc('mailbox', ['error', 'MySQL query failed']);
 			}
 		}
 		$mystring = "DELETE FROM alias_domain WHERE target_domain='$domain'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Domain was successfully deleted']);
 	}
 	public function delete_alias()
 	{
@@ -573,47 +499,41 @@ class MailboxController extends BaseController
 		global $logged_in_as;
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM alias WHERE address='$address' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $address)))
 		{
-			header("Location: do.php?event=".base64_encode("Mail address invalid"));
-			die("Mail address invalid");
+			loc('mailbox', ['error', 'Mail address invalid']);
 		}
 		$mystring = "DELETE FROM alias WHERE address='$address' AND address NOT IN (SELECT username FROM mailbox)";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Alias was successfully deleted']);
 	}
 	public function delete_domain_admin()
 	{
 		if ($_SESSION['mailcow_cc_role'] != "admin")
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		$username = mysqli_real_escape_string($link, $_POST['username']);
 		if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 		{
-			header("Location: do.php?event=".base64_encode("Invalid username"));
-			die("Invalid username");
+			loc('mailbox', ['error', 'Invalid username']);
 		}
 		$delete_domain = "DELETE FROM domain_admins WHERE username='$username';";
 		$delete_domain .= "DELETE FROM admin WHERE username='$username';";
 		if (!mysqli_multi_query($link, $delete_domain))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
 		while ($link->next_result())
 		{
 			if (!$link->more_results()) break;
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Domain administrator was successfully deleted']);
 	}
 	public function delete_alias_domain()
 	{
@@ -622,21 +542,18 @@ class MailboxController extends BaseController
 		global $logged_in_as;
 		if (!mysqli_result(mysqli_query($link, "SELECT target_domain FROM alias_domain WHERE alias_domain='$alias_domain' AND (target_domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if (!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)))
 		{
-			header("Location: do.php?event=".base64_encode("Domain name invalid"));
-			die("Domain name invalid");
+			loc('mailbox', ['error', 'Domain name invalid']);
 		}
 		$mystring = "DELETE FROM alias_domain WHERE alias_domain='$alias_domain'";
 		if (!mysqli_query($link, $mystring))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Alias domain was successfully deleted']);
 	}
 	public function delete_mailbox()
 	{
@@ -645,13 +562,11 @@ class MailboxController extends BaseController
 		global $logged_in_as;
 		if (!mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 		{
-			header("Location: do.php?event=".base64_encode("Permission denied"));
-			die("Permission denied");
+			loc('mailbox', ['error', 'Permission denied']);
 		}
 		if (!filter_var($username, FILTER_VALIDATE_EMAIL))
 		{
-			header("Location: do.php?event=".base64_encode("Mail address invalid"));
-			die("Mail address invalid");
+			loc('mailbox', ['error', 'Mail address invalid']);
 		}
 		$delete_user = "DELETE FROM alias WHERE goto='$username';";
 		$delete_user .= "DELETE FROM quota2 WHERE username='$username';";
@@ -666,14 +581,13 @@ class MailboxController extends BaseController
 		$delete_user .= "DELETE FROM calendars WHERE principaluri='principals/$username';";
 		if (!mysqli_multi_query($link, $delete_user))
 		{
-			header("Location: do.php?event=".base64_encode("MySQL query failed"));
-			die("MySQL query failed");
+			loc('mailbox', ['error', 'MySQL query failed']);
 		}
 		while ($link->next_result())
 		{
 			if (!$link->more_results()) break;
 		}
-		header('Location: do.php?return=success');
+		loc('mailbox', ['success', 'Mailbox was successfully deleted']);
 	}
 }
 ?>
