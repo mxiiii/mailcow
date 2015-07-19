@@ -80,7 +80,7 @@ if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] 
 	elseif (isset($_GET['addalias'])) {
 ?>
 				<h4>Add alias</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/add_alias">
 					<input type="hidden" name="mailboxaction" value="addalias">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="address">Alias address <small>(full e-mail address OR @domain.tld for <span style='color:#ec466a'>catch-all</span>)</small>:</label>
@@ -111,7 +111,7 @@ if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] 
 	elseif (isset($_GET['addaliasdomain'])) {
 ?>
 				<h4>Add domain alias</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/add_domain_alias">
 					<input type="hidden" name="mailboxaction" value="addaliasdomain">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="alias_domain">Alias domain:</label>
@@ -157,7 +157,7 @@ while ($row = mysqli_fetch_array($result)) {
 	?>
 				<h4>Change assigned domains for domain admin <strong><?php echo $editdomainadmin ?></strong></h4>
 				<br />
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/edit_domain_admin">
 				<input type="hidden" name="mailboxaction" value="editdomainadmin">
 				<input type="hidden" name="username" value="<?php echo $editdomainadmin ?>">
 					<div class="form-group">
@@ -196,7 +196,7 @@ while ($row = mysqli_fetch_array($resultselect)) {
 	elseif (isset($_GET['addmailbox'])) {
 	?>
 				<h4>Add a mailbox</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/add_mailbox">
 				<input type="hidden" name="mailboxaction" value="addmailbox">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="local_part">Mailbox Alias (left part of mail address) <small>(alphanumeric)</small>:</label>
@@ -269,7 +269,7 @@ while ($row = mysqli_fetch_array($result)) {
 	<?php
 	}
 	elseif (isset($_GET['editdomain'])) {
-		if (!ctype_alnum(str_replace('.', '', $_GET["editdomain"])) || empty($_GET["editdomain"])) { 
+		if (!ctype_alnum(str_replace('.', '', $_GET["editdomain"])) || empty($_GET["editdomain"])) {
 			echo 'Your provided domain name is invalid.';
 		}
 		else {
@@ -278,7 +278,7 @@ while ($row = mysqli_fetch_array($result)) {
 			$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT * FROM domain WHERE domain='$editdomain'"));
 	?>
 				<h4>Change settings for domain <strong><?php echo $editdomain ?></strong></h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/edit_domain">
 				<input type="hidden" name="mailboxaction" value="editdomain">
 				<input type="hidden" name="domain" value="<?php echo $editdomain ?>">
 					<div class="form-group">
@@ -348,7 +348,7 @@ while ($row = mysqli_fetch_array($result)) {
 			$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT username, name, round(sum(quota / 1048576)) as quota, active FROM mailbox WHERE username='$editmailbox'"));
 	?>
 				<h4>Change settings for mailbox <strong><?php echo $editmailbox ?></strong></h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/edit_mailbox">
 				<input type="hidden" name="mailboxaction" value="editmailbox">
 				<input type="hidden" name="username" value="<?php echo $result['username']; ?>">
 					<div class="form-group">
@@ -406,7 +406,7 @@ while ($row = mysqli_fetch_array($result)) {
 				echo "<p>This will also delete domain alises assigned to the domain</p>";
 				echo "<p><strong>Domain must be empty to be deleted!</b></p>";
 				?>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/delete_domain">
 				<input type="hidden" name="mailboxaction" value="deletedomain">
 				<input type="hidden" name="domain" value="<?php echo $deletedomain ?>">
 					<div class="form-group">
@@ -440,7 +440,7 @@ while ($row = mysqli_fetch_array($result)) {
 				}
 				echo "</ul>";
 				?>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/delete_alias">
 				<input type="hidden" name="address" value="<?php echo $deletealias ?>">
 				<input type="hidden" name="mailboxaction" value="deletealias">
 					<div class="form-group">
@@ -467,7 +467,7 @@ while ($row = mysqli_fetch_array($result)) {
 				echo '<div class="alert alert-warning" role="alert"><strong>Warning:</strong> You are about to delete an alias domain!</div>';
 				echo "<p>The server will stop accepting mails for the domain name <strong>$deletealiasdomain</strong>.</p>";
 				?>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/delete_alias_domain">
 				<input type="hidden" name="alias_domain" value="<?php echo $deletealiasdomain ?>">
 				<input type="hidden" name="mailboxaction" value="deletealiasdomain">
 					<div class="form-group">
@@ -494,7 +494,7 @@ while ($row = mysqli_fetch_array($result)) {
 				echo '<div class="alert alert-warning" role="alert"><strong>Warning:</strong> You are about to delete a domain administrator!</div>';
 				echo "<p>The domain administrator <strong>$deletedomainadmin</strong> will not be able to login after deletion.</p>";
 				?>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/delete_domain_admin">
 				<input type="hidden" name="username" value="<?php echo $deletedomainadmin ?>">
 				<input type="hidden" name="mailboxaction" value="deletedomainadmin">
 					<div class="form-group">
@@ -528,7 +528,7 @@ while ($row = mysqli_fetch_array($result)) {
 				}
 				echo "</ul>";
 				?>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain">
+				<form class="form-horizontal" role="form" method="post" action="/delete_mailbox">
 				<input type="hidden" name="mailboxaction" value="deletemailbox">
 				<input type="hidden" name="username" value="<?php echo $deletemailbox ?>">
 					<div class="form-group">
