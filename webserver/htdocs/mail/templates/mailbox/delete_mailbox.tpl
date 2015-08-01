@@ -10,7 +10,7 @@
 if (!filter_var($_GET["deletemailbox"], FILTER_VALIDATE_EMAIL))
 {
 	header("Location: do.php?event=".base64_encode("Your provided mailbox name is invalid"));
-	die("Your provided alias name is invalid"); 
+	die("Your provided alias name is invalid");
 }
 else
 {
@@ -48,15 +48,4 @@ else
 		</div>
 	</div>
 <a href="#" onclick="window.history.back();return false;">&#8592; go back</a>
-</div> <!-- /container -->
-<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="js/ripples.min.js"></script>
-<script src="js/material.min.js"></script>
-<script>
-$(document).ready(function() {
-	$.material.init();
-});
-</script>
-</body>
-</html>
+</div>

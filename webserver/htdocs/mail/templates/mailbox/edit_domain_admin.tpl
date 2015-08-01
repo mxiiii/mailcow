@@ -7,7 +7,7 @@
 				</div>
 				<div class="panel-body">
 <?php
-if (!ctype_alnum(str_replace(array('@', '.'), '', $_GET["editdomainadmin"])) || empty($_GET["editdomainadmin"])) { 
+if (!ctype_alnum(str_replace(array('@', '.'), '', $_GET["editdomainadmin"])) || empty($_GET["editdomainadmin"])) {
 	echo 'Your provided domain administrator username is invalid.';
 }
 else {
@@ -59,15 +59,4 @@ else {
 		</div>
 	</div>
 <a href="#" onclick="window.history.back();return false;">&#8592; go back</a>
-</div> <!-- /container -->
-<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="js/ripples.min.js"></script>
-<script src="js/material.min.js"></script>
-<script>
-$(document).ready(function() {
-	$.material.init();
-});
-</script>
-</body>
-</html>
+</div>
