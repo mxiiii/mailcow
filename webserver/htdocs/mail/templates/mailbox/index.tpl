@@ -1,4 +1,5 @@
 <div class="container">
+	<!-- Domains -->
 	<div class="row">
 		<div class="col-md-14">
 			<div class="panel panel-default">
@@ -28,17 +29,19 @@
 							</tr>
 						</thead>
 						<tbody>
-						{foreach $domains as $domain}
-							<tr>
-								<td>{$domain['domain']}</td>
-								<td>{$domain['aliases']}</td>
-								<td>{$domain['mailboxes']}</td>
-								<td>{$domain['maxquota']} M</td>
-								<td>{$domain['quota']} M</td>
-								<td>{$domain['active']}</td>
-								<td><a href="/deteledomainadmin/{$domain['username']}">delete</a> | <a href="/editdomainadmin/{$domain['username']}">edit</a></td>
-							</tr>
-						{/foreach}
+						{if $domains}
+							{foreach $domains as $domain}
+								<tr>
+									<td>{$domain['domain']}</td>
+									<td>{$domain['aliases']}</td>
+									<td>{$domain['mailboxes']}</td>
+									<td>{$domain['maxquota']} M</td>
+									<td>{$domain['quota']} M</td>
+									<td>{$domain['active']}</td>
+									<td><a href="/deteledomainadmin/{$domain['username']}">delete</a> | <a href="/editdomainadmin/{$domain['username']}">edit</a></td>
+								</tr>
+							{/foreach}
+						{/if}
 						</tbody>
 					</table>
 				</div>
@@ -46,6 +49,7 @@
 		</div>
 	</div>
 
+	<!-- Domain Aliasases -->
 	<div class="row">
 		<div class="col-md-14">
 			<div class="panel panel-default">
@@ -72,14 +76,68 @@
 							</tr>
 						</thead>
 						<tbody>
-						{foreach $domain_aliases as $domain_alias}
+						{if $domain_aliases}
+							{foreach $domain_aliases as $domain_alias}
+								<tr>
+									<td>{$domain_alias['alias_domain']}</td>
+									<td>{$domain_alias['target_domain']}</td>
+									<td>{$domain_alias['active']}</td>
+									<td><a href="/deletealiasdomain/{$domain_alias['username']}">delete</a></td>
+								</tr>
+							{/foreach}
+						{/if}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Mailboxes -->
+	<div class="row">
+		<div class="col-md-14">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Mailboxes</h3>
+					<div class="pull-right">
+						<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
+							<i class="glyphicon glyphicon-filter"></i>
+						</span>
+						<a href="do.php?addmailbox"><span class="glyphicon glyphicon-plus"></span></a>
+					</div>
+				</div>
+				<div class="panel-body">
+					<input type="text" class="form-control" id="mailboxtable-filter" data-action="filter" data-filters="#mailboxtable" placeholder="Filter" />
+				</div>
+				<div class="table-responsive">
+					<table class="table table-striped" id="mailboxtable">
+						<thead>
 							<tr>
-								<td>{$domain_alias['alias_domain']}</td>
-								<td>{$domain_alias['target_domain']}</td>
-								<td>{$domain_alias['active']}</td>
-								<td><a href="/deletealiasdomain/{$domain_alias['username']}">delete</a></td>
+								<th>Username</th>
+								<th>Name</th>
+								<th>Domain</th>
+								<th>Quota</th>
+								<th>In use</th>
+								<th>Msg #</th>
+								<th>Active</th>
+								<th>Action</th>
 							</tr>
-						{/foreach}
+						</thead>
+						<tbody>
+						{if $mailboxes}
+							{foreach $mailboxes as $mailbox}
+								<tr>
+									<td>{$mailbox['username']}</td>
+									<td>{$mailbox['name']}</td>
+									<td>{$mailbox['target_domain']}</td>
+									<td>{$mailbox['domain']}</td>
+									<td>{$mailbox['quota']}</td>
+									<td>{$mailbox['messages']}</td>
+									<td>{$mailbox['active']}</td>
+									<td><a href="/deletemailbox/{$mailbox['username']}">delete</a> | <a href="/editdomainadmin/{$mailbox['username']}">edit</a></td>
+								</tr>
+							{/foreach}
+						{/if}
 						</tbody>
 					</table>
 				</div>
