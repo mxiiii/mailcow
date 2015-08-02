@@ -9,7 +9,7 @@
 					<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
 						<i class="glyphicon glyphicon-filter"></i>
 					</span>
-					<a href="do.php?adddomain"><span class="glyphicon glyphicon-plus"></span></a>
+					<a href="add_domain"><span class="glyphicon glyphicon-plus"></span></a>
 				</div>
 				</div>
 				<div class="panel-body">

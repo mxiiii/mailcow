@@ -7,12 +7,12 @@
 				</div>
 				<div class="panel-body">
 				<h4>Add domain</h4>
-					<form class="form-horizontal" role="form" method="post" action="/add_domain">
+					<form class="form-horizontal" role="form" method="post" action="/save_add_domain">
 						<input type="hidden" name="mailboxaction" value="adddomain">
 						<div class="form-group">
 							<label class="control-label col-sm-2" for="domain">Domain name:</label>
 							<div class="col-sm-10">
-							<input type="text" pattern="\b((?=[a-z0-9-]{1,63}\.)[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}\b" class="form-control" name="domain" id="domain" placeholder="Domain to receive mail for">
+							<input type="text" class="form-control" name="domain" id="domain" placeholder="Domain to receive mail for">
 							</div>
 						</div>
 						<div class="form-group">

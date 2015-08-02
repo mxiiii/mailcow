@@ -16,49 +16,44 @@ class MailboxController extends BaseController
 		Core::$template->assign('aliases', $aliases);
 	}
 
-	// public function add_domain()
-	// {
-	// 	extract($postarray);
-	// 	if ($_SESSION['mailcow_cc_role'] != 'admin')
-	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
-	// 	}
-	// 	if ($maxquota > $quota)
-	// 	{
-	// 		loc('mailbox', ['error', 'Max. size per mailbox can not be greater than domain quota']);
-	// 	}
-	// 	isset($active) ? $active = '1' : $active = '0';
-	// 	isset($backupmx) ? $backupmx = '1' : $backupmx = '0';
-	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)))
-	// 	{
-	// 		loc('mailbox', ['error', 'Domain name invalid']);
-	// 	}
-	// 	foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data)
-	// 	{
-	// 		if (!is_numeric($data))
-	// 		{
-	// 			loc('mailbox', ['error', 'Invalid data type']);
-	// 		}
-	// 	}
-	// 	$link->insert('domain', [
-	// 		'domain' => $domain,
-	// 		'description' => $description,
-	// 		'aliases' => $aliases,
-	// 		'mailboxes' => $mailboxes,
-	// 		'maxquota' => $maxquota,
-	// 		'quota' => $quota,
-	// 		'transport' => 'virtual',
-	// 		'backupmx' => $backupmx,
-	// 		'#created' => 'NOW()',
-	// 		'#modified' => 'NOW()',
-	// 		'active' => $active,
-	// 	]);
-	// 	if (!empty($link->error()[2]))
-	// 	{
-	// 		loc('mailbox', ['error', 'MySQL Error']);
-	// 	}
-	// 	loc('mailbox', ['success', 'Domain has been successfully added']);
-	// }
+	public function add_domain()
+	{
+
+	}
+
+	public function save_add_domain()
+	{
+		extract($_POST);
+		if ($_SESSION['role'] != 'admin') loc('mailbox', ['error', 'Permission denied']);
+		if ($maxquota > $quota) loc('mailbox', ['error', 'Max. size per mailbox can not be greater than domain quota']);
+
+		isset($active) ? $active = '1' : $active = '0';
+		isset($backupmx) ? $backupmx = '1' : $backupmx = '0';
+
+		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain))) loc('mailbox', ['error', 'Domain name invalid']);
+
+		foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data)
+		{
+			if (!is_numeric($data)) loc('mailbox', ['error', 'Invalid data type']);
+		}
+
+		$result = Core::$link->insert('domain', [
+			'domain' => $domain,
+			'description' => $description,
+			'aliases' => $aliases,
+			'mailboxes' => $mailboxes,
+			'maxquota' => $maxquota,
+			'quota' => $quota,
+			'transport' => 'virtual',
+			'backupmx' => $backupmx,
+			'#created' => 'NOW()',
+			'#modified' => 'NOW()',
+			'active' => $active,
+		]);
+
+		if (!$result) loc('save_add_domain', ['error', 'MySQL Error']);
+		loc('mailbox', ['success', 'Domain has been successfully added']);
+	}
 
 	// public function add_alias()
 	// {
