@@ -36,6 +36,7 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 		}
 
 		// Falls die Route einen Login brauch, diesen verwenden
+
 		if($route['login'] && !isset($_SESSION['logged_in'])) header('Location: /login');
 
 		// nochmal überprüfen ob der Controller exestiert
@@ -49,6 +50,7 @@ if(Router::checkRoute($_SERVER['REQUEST_URI']))
 				// Falls alles ok ist, Template darstellen
 				(new $controller)->$route['action']();
 				Core::$controller->show($route);
+
 			}
 			else
 			{
