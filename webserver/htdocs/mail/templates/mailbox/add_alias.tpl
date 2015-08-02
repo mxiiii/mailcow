@@ -7,7 +7,7 @@
 				</div>
 				<div class="panel-body">
 				<h4>Add alias</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_alias">
+				<form class="form-horizontal" role="form" method="post" action="/save_add_alias">
 					<input type="hidden" name="mailboxaction" value="addalias">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="address">Alias address <small>(full e-mail address OR @domain.tld for <span style='color:#ec466a'>catch-all</span>)</small>:</label>

@@ -24,17 +24,17 @@ class MailboxController extends BaseController
 	public function save_add_domain()
 	{
 		extract($_POST);
-		if ($_SESSION['role'] != 'admin') loc('mailbox', ['error', 'Permission denied']);
-		if ($maxquota > $quota) loc('mailbox', ['error', 'Max. size per mailbox can not be greater than domain quota']);
+		if ($_SESSION['role'] != 'admin') loc('mailbox', ['warning', 'Permission denied']);
+		if ($maxquota > $quota) loc('add_domain', ['warning', 'Max. size per mailbox can not be greater than domain quota']);
 
 		isset($active) ? $active = '1' : $active = '0';
 		isset($backupmx) ? $backupmx = '1' : $backupmx = '0';
 
-		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain))) loc('mailbox', ['error', 'Domain name invalid']);
+		if (!ctype_alnum(str_replace(array('.', '-'), '', $domain))) loc('mailbox', ['warning', 'Domain name invalid']);
 
 		foreach (array($quota, $maxquota, $mailboxes, $aliases) as $data)
 		{
-			if (!is_numeric($data)) loc('mailbox', ['error', 'Invalid data type']);
+			if (!is_numeric($data)) loc('add_domain', ['warning', 'Invalid data type']);
 		}
 
 		$result = Core::$link->insert('domain', [
@@ -51,53 +51,65 @@ class MailboxController extends BaseController
 			'active' => $active,
 		]);
 
-		if (!$result) loc('save_add_domain', ['error', 'MySQL Error']);
+		if (!$result) loc('save_add_domain', ['warning', 'MySQL Error.<br>'.Core::$link->last_query()]);
 		loc('mailbox', ['success', 'Domain has been successfully added']);
 	}
 
-	// public function add_alias()
-	// {
-	// 	$address = mysqli_real_escape_string($link, $_POST['address']);
-	// 	$goto = mysqli_real_escape_string($link, $_POST['goto']);
-	// 	$active = mysqli_real_escape_string($link, $_POST['active']);
-	// 	$domain = substr($address, strpos($address, '@')+1);
-	// 	global $logged_in_role;
-	// 	global $logged_in_as;
-	// 	if (empty($domain))
-	// 	{
-	// 		loc('mailbox', ['error', 'Domain cannot by empty']);
-	// 	}
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
-	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied or invalid format']);
-	// 	}
-	// 	isset($active) ? $active = '1' : $active = '0';
-	// 	if ((!filter_var($address, FILTER_VALIDATE_EMAIL) && empty($domain)) || !filter_var($goto, FILTER_VALIDATE_EMAIL))
-	// 	{
-	// 		loc('mailbox', ['error', 'Mail address format invalid']);
-	// 	}
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain'")))
-	// 	{
-	// 		loc('mailbox', ['error', 'Domain not found']);
-	// 	}
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT username FROM mailbox WHERE username='$goto'")))
-	// 	{
-	// 		loc('mailbox', ['error', 'Destination address unknown']);
-	// 	}
-	// 	if (!filter_var($address, FILTER_VALIDATE_EMAIL))
-	// 	{
-	// 		$mystring = "INSERT INTO alias (address, goto, domain, created, modified, active) VALUE ('@$domain', '$goto', '$domain', now(), now(), '$active')";
-	// 	}
-	// 	else
-	// 	{
-	// 		$mystring = "INSERT INTO alias (address, goto, domain, created, modified, active) VALUE ('$address', '$goto', '$domain', now(), now(), '$active')";
-	// 	}
-	// 	if (!mysqli_query($link, $mystring))
-	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
-	// 	}
-	// 	loc('mailbox', ['success', 'Alias has been successfully added']);
-	// }
+	public function add_alias()
+	{
+
+	}
+
+	public function save_add_alias()
+	{
+		$address = $_POST['address'];
+		$goto = $_POST['goto'];
+		$active = $_POST['active'];
+		$domain = substr($address, strpos($address, '@')+1);
+
+		if(empty($domain)) loc('add_alias', ['warning', 'Domain cannot by empty']);
+
+		if(!Core::$link->query('SELECT domain FROM domain WHERE domain = \''.$domain.'\' AND (domain NOT IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' != \''.$_SESSION['role'].'\')'))
+		{
+			loc('add_alias', ['warning', 'Permission denied or invalid format']);
+		}
+
+		isset($active) ? $active = '1' : $active = '0';
+
+		if((!filter_var($address, FILTER_VALIDATE_EMAIL) && empty($domain)) || !filter_var($goto, FILTER_VALIDATE_EMAIL)) loc('add_alias', ['warning', 'Mail address format invalid']);
+
+		$domain = Core::$link->get('domain', 'domain', ['domain' => $domain]);
+		if(!$domain) loc('add_alias', ['warning', 'Domain not found']);
+
+		$destination = Core::$link->get('mailbox', 'username', ['username' => $goto]);
+		if(!$destination) loc('add_alias', ['warning', 'Destination address unknown']);
+
+		if(!filter_var($address, FILTER_VALIDATE_EMAIL))
+		{
+			$result = Core::$link->insert('alias', [
+				'address' => '@'.$domain,
+				'goto' => $goto,
+				'domain' => $domain,
+				'#created' => 'NOW()',
+				'#modified' => 'NOW()',
+				'active' => $active,
+			]);
+		}
+		else
+		{
+			$result = Core::$link->insert('alias', [
+				'address' => $address,
+				'goto' => $goto,
+				'domain' => $domain,
+				'#created' => 'NOW()',
+				'#modified' => 'NOW()',
+				'active' => $active,
+			]);
+		}
+
+		if(!$result) loc('add_alias', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+		else loc('mailbox', ['success', 'Alias has been successfully added']);
+	}
 
 	// public function add_domain_alias()
 	// {
@@ -108,29 +120,29 @@ class MailboxController extends BaseController
 	// 	global $logged_in_as;
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$target_domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	isset($active) ? $active = '1' : $active = '0';
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)) || empty ($alias_domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'Alias domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Alias domain name invalid']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $target_domain)) || empty ($target_domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'Target domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Target domain name invalid']);
 	// 	}
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$target_domain'")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Target domain not found']);
+	// 		loc('mailbox', ['warning', 'Target domain not found']);
 	// 	}
 	// 	if (mysqli_result(mysqli_query($link, "SELECT alias_domain FROM alias_domain where alias_domain='$alias_domain'")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Alias domain exists']);
+	// 		loc('mailbox', ['warning', 'Alias domain exists']);
 	// 	}
 	// 	$mystring = "INSERT INTO alias_domain (alias_domain, target_domain, created, modified, active) VALUE ('$alias_domain', '$target_domain', now(), now(), '$active')";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Domain alias has been successfully added']);
 	// }
@@ -139,11 +151,11 @@ class MailboxController extends BaseController
 	// {
 	// 	if (empty($_POST['domain']))
 	// 	{
-	// 		loc('mailbox', ['error', 'Please assign a domain']);
+	// 		loc('mailbox', ['warning', 'Please assign a domain']);
 	// 	}
 	// 	if ($_SESSION['mailcow_cc_role'] != "admin")
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	array_walk($_POST['domain'], function(&$string) use ($link)
 	// 	{
@@ -152,7 +164,7 @@ class MailboxController extends BaseController
 	// 	$username = mysqli_real_escape_string($link, $_POST['username']);
 	// 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Invalid username']);
+	// 		loc('mailbox', ['warning', 'Invalid username']);
 	// 	}
 	// 	if (isset($_POST['active']) && $_POST['active'] == "on")
 	// 	{
@@ -165,20 +177,20 @@ class MailboxController extends BaseController
 	// 	$mystring = "DELETE FROM domain_admins WHERE username='$username'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	foreach ($_POST['domain'] as $domain)
 	// 	{
 	// 		$mystring = "INSERT INTO domain_admins (username, domain, created, active) VALUES ('$username', '$domain', now(), '$active')";
 	// 		if (!mysqli_query($link, $mystring))
 	// 		{
-	// 			loc('mailbox', ['error', 'MySQL query failed']);
+	// 			loc('mailbox', ['warning', 'MySQL query failed']);
 	// 		}
 	// 	}
 	// 	$mystring = "UPDATE admin SET modified=now(), active='$active' where username='$username'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Changes to domain administrator have been saved']);
 	// }
@@ -212,62 +224,62 @@ class MailboxController extends BaseController
 
 	// 	if (empty($default_cal) || empty($default_card))
 	// 	{
-	// 		loc('mailbox', ['error', 'Calendar and address book cannot be empty']);
+	// 		loc('mailbox', ['warning', 'Calendar and address book cannot be empty']);
 	// 	}
 
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Domain name invalid']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $local_part) || empty ($local_part)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Mailbox alias must be alphanumeric']);
+	// 		loc('mailbox', ['warning', 'Mailbox alias must be alphanumeric']);
 	// 	}
 	// 	if (!is_numeric($quota_m))
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota is not numeric']);
+	// 		loc('mailbox', ['warning', 'Quota is not numeric']);
 	// 	}
 	// 	if (!empty($password) && !empty($password2))
 	// 	{
 	// 		if ($password != $password2)
 	// 		{
-	// 			loc('mailbox', ['error', 'Password mismatch']);
+	// 			loc('mailbox', ['warning', 'Password mismatch']);
 	// 		}
 	// 		$prep_password = escapeshellcmd($password);
 	// 		exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
 	// 		$password_sha512c = $hash[0];
 	// 		if ($return != "0")
 	// 		{
-	// 			loc('mailbox', ['error', 'Error creating password hash']);
+	// 			loc('mailbox', ['warning', 'Error creating password hash']);
 	// 		}
 	// 	}
 	// 	else
 	// 	{
-	// 		loc('mailbox', ['error', 'Password cannot be empty']);
+	// 		loc('mailbox', ['warning', 'Password cannot be empty']);
 	// 	}
 	// 	if ($num_mailboxes >= $num_max_mailboxes)
 	// 	{
-	// 		loc('mailbox', ['error', 'Mailbox quota exceeded']);
+	// 		loc('mailbox', ['warning', 'Mailbox quota exceeded']);
 	// 	}
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$domain'")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain not found']);
+	// 		loc('mailbox', ['warning', 'Domain not found']);
 	// 	}
 	// 	if (!filter_var($username, FILTER_VALIDATE_EMAIL))
 	// 	{
-	// 		loc('mailbox', ['error', 'Mail address is invalid']);
+	// 		loc('mailbox', ['warning', 'Mail address is invalid']);
 	// 	}
 	// 	if ($quota_m > $maxquota_m)
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota over max. quota limit']);
+	// 		loc('mailbox', ['warning', 'Quota over max. quota limit']);
 	// 	}
 	// 	if (($quota_m_in_use+$quota_m) > $domain_quota_m)
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota exceeds quota left']);
+	// 		loc('mailbox', ['warning', 'Quota exceeds quota left']);
 	// 	}
 	// 	if (isset($_POST['active']) && $_POST['active'] == "on")
 	// 	{
@@ -297,7 +309,7 @@ class MailboxController extends BaseController
 	// 			VALUES ('principals/$username','$default_cal','default','','VEVENT,VTODO', '0');";
 	// 	if (!mysqli_multi_query($link, $create_user))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	while ($link->next_result())
 	// 	{
@@ -326,39 +338,39 @@ class MailboxController extends BaseController
 
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	$numeric_array = array($aliases, $mailboxes, $maxquota, $quota);
 	// 	foreach ($numeric_array as $numeric)
 	// 	{
 	// 		if (!is_numeric($mailboxes))
 	// 		{
-	// 			loc('mailbox', ['error', 'Invalid data type']);
+	// 			loc('mailbox', ['warning', 'Invalid data type']);
 	// 		}
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Domain name invalid']);
 	// 	}
 	// 	if ($maxquota > $quota)
 	// 	{
-	// 		loc('mailbox', ['error', 'Max. size per mailbox cannot be greater than domain quota.']);
+	// 		loc('mailbox', ['warning', 'Max. size per mailbox cannot be greater than domain quota.']);
 	// 	}
 	// 	if ($maxquota_in_use > $maxquota)
 	// 	{
-	// 		loc('mailbox', ['error', 'Max. quota per mailbox must be greater than or equal to quota in use.']);
+	// 		loc('mailbox', ['warning', 'Max. quota per mailbox must be greater than or equal to quota in use.']);
 	// 	}
 	// 	if ($domain_quota_m_in_use > $quota)
 	// 	{
-	// 		loc('mailbox', ['error', 'Max. quota must be greater than or equal to domain quota in use.']);
+	// 		loc('mailbox', ['warning', 'Max. quota must be greater than or equal to domain quota in use.']);
 	// 	}
 	// 	if ($mailboxes_in_use > $mailboxes)
 	// 	{
-	// 		loc('mailbox', ['error', 'Max. mailboxes must be greater than or equal to mailboxes in use.']);
+	// 		loc('mailbox', ['warning', 'Max. mailboxes must be greater than or equal to mailboxes in use.']);
 	// 	}
 	// 	if ($aliases_in_use > $aliases)
 	// 	{
-	// 		loc('mailbox', ['error', 'Max. aliases must be greater than or equal to aliases in use.']);
+	// 		loc('mailbox', ['warning', 'Max. aliases must be greater than or equal to aliases in use.']);
 	// 	}
 	// 	if (isset($_POST['active']) && $_POST['active'] == "on")
 	// 	{
@@ -379,7 +391,7 @@ class MailboxController extends BaseController
 	// 	$mystring = "UPDATE domain SET modified=now(), backupmx='$backupmx', active='$active', quota='$quota', maxquota='$maxquota', mailboxes='$mailboxes', aliases='$aliases', description='$description' WHERE domain='$domain'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Changes to domain have been saved']);
 	// }
@@ -394,11 +406,11 @@ class MailboxController extends BaseController
 	// 	$password2 = mysqli_real_escape_string($link, $_POST['password2']);
 	// 	if (!is_numeric($quota_m))
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota must be numeric']);
+	// 		loc('mailbox', ['warning', 'Quota must be numeric']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Invalid username']);
+	// 		loc('mailbox', ['warning', 'Invalid username']);
 	// 	}
 	// 	$domain = mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username'"));
 	// 	$quota_m_now = mysqli_result(mysqli_query($link, "SELECT coalesce(round(sum(quota)/1048576), 0) as quota FROM mailbox WHERE username='$username'"));
@@ -410,15 +422,15 @@ class MailboxController extends BaseController
 	// 	global $logged_in_as;
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if ($quota_m > $maxquota_m)
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota over max. quota limit']);
+	// 		loc('mailbox', ['warning', 'Quota over max. quota limit']);
 	// 	}
 	// 	if (($quota_m_in_use-$quota_m_now+$quota_m) > $domain_quota_m)
 	// 	{
-	// 		loc('mailbox', ['error', 'Quota exceeds quota left']);
+	// 		loc('mailbox', ['warning', 'Quota exceeds quota left']);
 	// 	}
 	// 	if (isset($_POST['active']) && $_POST['active'] == "on")
 	// 	{
@@ -432,20 +444,20 @@ class MailboxController extends BaseController
 	// 	{
 	// 		if ($password != $password2)
 	// 		{
-	// 			loc('mailbox', ['error', 'Password mismatch']);
+	// 			loc('mailbox', ['warning', 'Password mismatch']);
 	// 		}
 	// 		$prep_password = escapeshellcmd($password);
 	// 		exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
 	// 		$password_sha512c = $hash[0];
 	// 		if ($return != "0")
 	// 		{
-	// 			loc('mailbox', ['error', 'Error creating password hash']);
+	// 			loc('mailbox', ['warning', 'Error creating password hash']);
 	// 		}
 	// 		$update_user = "UPDATE mailbox SET modified=now(), active='$active', password='$password_sha512c', name='$name', quota='$quota_b' WHERE username='$username';";
 	// 		$update_user .= "UPDATE users SET digesta1=MD5(CONCAT('$username', ':SabreDAV:', '$password')) WHERE username='$username';";
 	// 		if (!mysqli_multi_query($link, $update_user))
 	// 		{
-	// 			loc('mailbox', ['error', 'MySQL query failed']);
+	// 			loc('mailbox', ['warning', 'MySQL query failed']);
 	// 		}
 	// 		while ($link->next_result())
 	// 		{
@@ -456,7 +468,7 @@ class MailboxController extends BaseController
 	// 	$mystring = "UPDATE mailbox SET modified=now(), active='$active', name='$name', quota='$quota_b' WHERE username='$username'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	else
 	// 	{
@@ -469,29 +481,29 @@ class MailboxController extends BaseController
 	// 	$domain = mysqli_real_escape_string($link, $_POST['domain']);
 	// 	if ($_SESSION['mailcow_cc_role'] != "admin")
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Domain name invalid']);
 	// 	}
 	// 	$mystring = "SELECT username FROM mailbox WHERE domain='$domain';";
 	// 	if (!mysqli_query($link, $mystring) || !empty(mysqli_result(mysqli_query($link, $mystring))))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain is not empty! Please delete mailboxes first.']);
+	// 		loc('mailbox', ['warning', 'Domain is not empty! Please delete mailboxes first.']);
 	// 	}
 	// 	foreach (array("domain", "alias", "domain_admins") as $deletefrom)
 	// 	{
 	// 		$mystring = "DELETE FROM $deletefrom WHERE domain='$domain'";
 	// 		if (!mysqli_query($link, $mystring))
 	// 		{
-	// 			loc('mailbox', ['error', 'MySQL query failed']);
+	// 			loc('mailbox', ['warning', 'MySQL query failed']);
 	// 		}
 	// 	}
 	// 	$mystring = "DELETE FROM alias_domain WHERE target_domain='$domain'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Domain was successfully deleted']);
 	// }
@@ -503,16 +515,16 @@ class MailboxController extends BaseController
 	// 	global $logged_in_as;
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM alias WHERE address='$address' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $address)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Mail address invalid']);
+	// 		loc('mailbox', ['warning', 'Mail address invalid']);
 	// 	}
 	// 	$mystring = "DELETE FROM alias WHERE address='$address' AND address NOT IN (SELECT username FROM mailbox)";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Alias was successfully deleted']);
 	// }
@@ -521,18 +533,18 @@ class MailboxController extends BaseController
 	// {
 	// 	if ($_SESSION['mailcow_cc_role'] != "admin")
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	$username = mysqli_real_escape_string($link, $_POST['username']);
 	// 	if (!ctype_alnum(str_replace(array('@', '.', '-'), '', $username)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Invalid username']);
+	// 		loc('mailbox', ['warning', 'Invalid username']);
 	// 	}
 	// 	$delete_domain = "DELETE FROM domain_admins WHERE username='$username';";
 	// 	$delete_domain .= "DELETE FROM admin WHERE username='$username';";
 	// 	if (!mysqli_multi_query($link, $delete_domain))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	while ($link->next_result())
 	// 	{
@@ -548,16 +560,16 @@ class MailboxController extends BaseController
 	// 	global $logged_in_as;
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT target_domain FROM alias_domain WHERE alias_domain='$alias_domain' AND (target_domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)))
 	// 	{
-	// 		loc('mailbox', ['error', 'Domain name invalid']);
+	// 		loc('mailbox', ['warning', 'Domain name invalid']);
 	// 	}
 	// 	$mystring = "DELETE FROM alias_domain WHERE alias_domain='$alias_domain'";
 	// 	if (!mysqli_query($link, $mystring))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	loc('mailbox', ['success', 'Alias domain was successfully deleted']);
 	// }
@@ -569,11 +581,11 @@ class MailboxController extends BaseController
 	// 	global $logged_in_as;
 	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM mailbox WHERE username='$username' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
 	// 	{
-	// 		loc('mailbox', ['error', 'Permission denied']);
+	// 		loc('mailbox', ['warning', 'Permission denied']);
 	// 	}
 	// 	if (!filter_var($username, FILTER_VALIDATE_EMAIL))
 	// 	{
-	// 		loc('mailbox', ['error', 'Mail address invalid']);
+	// 		loc('mailbox', ['warning', 'Mail address invalid']);
 	// 	}
 	// 	$delete_user = "DELETE FROM alias WHERE goto='$username';";
 	// 	$delete_user .= "DELETE FROM quota2 WHERE username='$username';";
@@ -588,7 +600,7 @@ class MailboxController extends BaseController
 	// 	$delete_user .= "DELETE FROM calendars WHERE principaluri='principals/$username';";
 	// 	if (!mysqli_multi_query($link, $delete_user))
 	// 	{
-	// 		loc('mailbox', ['error', 'MySQL query failed']);
+	// 		loc('mailbox', ['warning', 'MySQL query failed']);
 	// 	}
 	// 	while ($link->next_result())
 	// 	{
