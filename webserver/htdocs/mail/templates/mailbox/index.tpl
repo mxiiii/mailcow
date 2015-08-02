@@ -144,4 +144,50 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Aliases -->
+	<div class="row">
+		<div class="col-md-14">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Aliases</h3>
+					<div class="pull-right">
+						<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
+							<i class="glyphicon glyphicon-filter"></i>
+						</span>
+						<a href="do.php?addalias"><span class="glyphicon glyphicon-plus"></span></a>
+					</div>
+				</div>
+				<div class="panel-body">
+					<input type="text" class="form-control" id="aliastable-filter" data-action="filter" data-filters="#aliastable" placeholder="Filter" />
+				</div>
+				<div class="table-responsive">
+					<table class="table table-striped" id="aliastable">
+						<thead>
+							<tr>
+								<th>Alias address</th>
+								<th>Destination</th>
+								<th>Domain</th>
+								<th>Active</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody>
+						{if $aliases}
+							{foreach $aliases as $alias}
+								<tr>
+									<td>{$alias['address']}</td>
+									<td>{$alias['goto']}</td>
+									<td>{$alias['domain']}</td>
+									<td>{$alias['active']}</td>
+									<td><a href="/deletealias/{$alias['address']}">delete</a></td>
+								</tr>
+							{/foreach}
+						{/if}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

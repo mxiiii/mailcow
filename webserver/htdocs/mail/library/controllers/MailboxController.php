@@ -11,6 +11,9 @@ class MailboxController extends BaseController
 
 		$mailboxes = Core::$link->query('SELECT mailbox.username, name, active, domain, quota, bytes, messages FROM mailbox, quota2 WHERE (mailbox.username = quota2.username) AND (domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
 		Core::$template->assign('mailboxes', $mailboxes);
+
+		$aliases = Core::$link->query('SELECT address, goto, domain, active FROM alias WHERE (address NOT IN (SELECT username FROM mailbox) AND address!=goto) AND (domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
+		Core::$template->assign('aliases', $aliases);
 	}
 
 	// public function add_domain()
