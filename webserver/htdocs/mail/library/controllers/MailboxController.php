@@ -6,10 +6,8 @@ class MailboxController extends BaseController
 		$domains = Core::$link->query('SELECT domain, aliases, mailboxes, maxquota, quota, active FROM domain WHERE domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
 		Core::$template->assign('domains', $domains);
 
-		// foreach ($domains as $domain)
-		// {
-		// 	echo '<pre>';print_r($domain);echo '</pre>';
-		// }
+		$domain_aliases = Core::$link->query('SELECT alias_domain, target_domain, active FROM alias_domain WHERE target_domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
+		Core::$template->assign('domain_aliases', $domain_aliases);
 	}
 
 	// public function add_domain()
