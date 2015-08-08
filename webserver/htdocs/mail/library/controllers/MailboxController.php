@@ -203,128 +203,152 @@ class MailboxController extends BaseController
 	// 	loc('mailbox', ['success', 'Changes to domain administrator have been saved']);
 	// }
 
-	// public function add_mailbox()
-	// {
-	// 	$password = mysqli_real_escape_string($link, $_POST['password']);
-	// 	$password2 = mysqli_real_escape_string($link, $_POST['password2']);
-	// 	$domain = mysqli_real_escape_string($link, $_POST['domain']);
-	// 	$local_part = mysqli_real_escape_string($link, $_POST['local_part']);
-	// 	$name = mysqli_real_escape_string($link, $_POST['name']);
-	// 	$default_cal = mysqli_real_escape_string($link, $_POST['default_cal']);
-	// 	$default_card = mysqli_real_escape_string($link, $_POST['default_card']);
-	// 	$quota_m = mysqli_real_escape_string($link, $_POST['quota']);
+	public function add_mailbox()
+	{
+		$domains = Core::$link->query('SELECT domain FROM domain WHERE domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
+		Core::$template->assign('domains', $domains);
+	}
 
-	// 	$quota_b = $quota_m*1048576;
-	// 	$maildir = $domain."/".$local_part."/";
-	// 	$username = $local_part.'@'.$domain;
+	public function save_add_mailbox()
+	{
+		$password = $_POST['password'];
+		$password2 = $_POST['password2'];
+		$domain = $_POST['domain'];
+		$local_part = $_POST['local_part'];
+		$name = $_POST['name'];
+		$default_cal = $_POST['default_cal'];
+		$default_card = $_POST['default_card'];
+		$quota_m = $_POST['quota'];
 
-	// 	$row_from_domain = mysqli_fetch_assoc(mysqli_query($link, "SELECT mailboxes, maxquota, quota FROM domain WHERE domain='$domain'"));
-	// 	$row_from_mailbox = mysqli_fetch_assoc(mysqli_query($link, "SELECT count(*) as count, coalesce(round(sum(quota)/1048576), 0) as quota FROM mailbox WHERE domain='$domain'"));
+		// if(empty($password) || empty($password2) || empty($domain) || empty($local_part) || empty($name) || empty($default_cal) || empty($default_card) || empty($quota_m)) loc('add_mailbox', ['warning', 'Not all fields']);
 
-	// 	$num_mailboxes = $row_from_mailbox['count'];
-	// 	$quota_m_in_use = $row_from_mailbox['quota'];
-	// 	$num_max_mailboxes = $row_from_domain['mailboxes'];
-	// 	$maxquota_m = $row_from_domain['maxquota'];
-	// 	$domain_quota_m = $row_from_domain['quota'];
+		$quota_b = $quota_m*1048576;
+		$maildir = $domain."/".$local_part."/";
+		$username = $local_part.'@'.$domain;
 
-	// 	global $logged_in_role;
-	// 	global $logged_in_as;
+		$row_from_domain = Core::$link->get('domain', ['mailboxes', 'maxquota', 'quota'], ['domain' => $domain]);
+		$row_from_mailbox_ = Core::$link->query('SELECT count(*) as count, coalesce(round(sum(quota)/1048576), 0) as quota FROM mailbox WHERE domain = \''.$domain.'\'');
 
-	// 	if (empty($default_cal) || empty($default_card))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Calendar and address book cannot be empty']);
-	// 	}
+		$row_from_mailbox = array();
 
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Permission denied']);
-	// 	}
-	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Domain name invalid']);
-	// 	}
-	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $local_part) || empty ($local_part)))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Mailbox alias must be alphanumeric']);
-	// 	}
-	// 	if (!is_numeric($quota_m))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Quota is not numeric']);
-	// 	}
-	// 	if (!empty($password) && !empty($password2))
-	// 	{
-	// 		if ($password != $password2)
-	// 		{
-	// 			loc('mailbox', ['warning', 'Password mismatch']);
-	// 		}
-	// 		$prep_password = escapeshellcmd($password);
-	// 		exec("/usr/bin/doveadm pw -s SHA512-CRYPT -p $prep_password", $hash, $return);
-	// 		$password_sha512c = $hash[0];
-	// 		if ($return != "0")
-	// 		{
-	// 			loc('mailbox', ['warning', 'Error creating password hash']);
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		loc('mailbox', ['warning', 'Password cannot be empty']);
-	// 	}
-	// 	if ($num_mailboxes >= $num_max_mailboxes)
-	// 	{
-	// 		loc('mailbox', ['warning', 'Mailbox quota exceeded']);
-	// 	}
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$domain'")))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Domain not found']);
-	// 	}
-	// 	if (!filter_var($username, FILTER_VALIDATE_EMAIL))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Mail address is invalid']);
-	// 	}
-	// 	if ($quota_m > $maxquota_m)
-	// 	{
-	// 		loc('mailbox', ['warning', 'Quota over max. quota limit']);
-	// 	}
-	// 	if (($quota_m_in_use+$quota_m) > $domain_quota_m)
-	// 	{
-	// 		loc('mailbox', ['warning', 'Quota exceeds quota left']);
-	// 	}
-	// 	if (isset($_POST['active']) && $_POST['active'] == "on")
-	// 	{
-	// 		$active = "1";
-	// 	}
-	// 	else
-	// 	{
-	// 		$active = "0";
-	// 	}
-	// 	$create_user = "INSERT INTO mailbox (username, password, name, maildir, quota, local_part, domain, created, modified, active)
-	// 			VALUES ('$username', '$password_sha512c', '$name', '$maildir', '$quota_b', '$local_part', '$domain', now(), now(), '$active');";
-	// 	$create_user .= "INSERT INTO quota2 (username, bytes, messages)
-	// 			VALUES ('$username', '', '');";
-	// 	$create_user .= "INSERT INTO alias (address, goto, domain, created, modified, active)
-	// 			VALUES ('$username', '$username', '$domain', now(), now(), '$active');";
-	// 	$create_user .= "INSERT INTO users (username, digesta1)
-	// 			VALUES('$username', MD5(CONCAT('$username', ':SabreDAV:', '$password')));";
-	// 	$create_user .= "INSERT INTO principals (uri,email,displayname)
-	// 			VALUES ('principals/$username', '$username', '$name');";
-	// 	$create_user .= "INSERT INTO principals (uri,email,displayname)
-	// 			VALUES ('principals/$username/calendar-proxy-read', null, null);";
-	// 	$create_user .= "INSERT INTO principals (uri,email,displayname)
-	// 			VALUES ('principals/$username/calendar-proxy-write', null, null);";
-	// 	$create_user .= "INSERT INTO addressbooks (principaluri, displayname, uri, description, synctoken)
-	// 			VALUES ('principals/$username','$default_card','default','','1');";
-	// 	$create_user .= "INSERT INTO calendars (principaluri, displayname, uri, description, components, transparent)
-	// 			VALUES ('principals/$username','$default_cal','default','','VEVENT,VTODO', '0');";
-	// 	if (!mysqli_multi_query($link, $create_user))
-	// 	{
-	// 		loc('mailbox', ['warning', 'MySQL query failed']);
-	// 	}
-	// 	while ($link->next_result())
-	// 	{
-	// 		if (!$link->more_results()) break;
-	// 	}
-	// 	loc('mailbox', ['success', 'Mailbox has been successfully added']);
-	// }
+		foreach($row_from_mailbox_ as $key => $value)
+		{
+			$row_from_mailbox[$key] = $value;
+		}
+
+		$num_mailboxes = $row_from_mailbox[0]['count'];
+		$quota_m_in_use = $row_from_mailbox[0]['quota'];
+		$num_max_mailboxes = $row_from_domain['mailboxes'];
+		$maxquota_m = $row_from_domain['maxquota'];
+		$domain_quota_m = $row_from_domain['quota'];
+
+		if(empty($default_cal) || empty($default_card)) loc('add_mailbox', ['warning', 'Calendar and address book cannot be empty']);
+
+		$permission = Core::$link->query('SELECT domain FROM domain WHERE domain = \''.$domain.'\' AND (domain NOT IN (SELECT domain from domain_admins  WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\')');
+		if(!$permission) loc('add_mailbox', ['warning', 'Permission denied']);
+
+		if(!ctype_alnum(str_replace(array('.', '-'), '', $domain)) || empty ($domain)) loc('add_mailbox', ['warning', 'Domain name invalid']);
+		if(!ctype_alnum(str_replace(array('.', '-'), '', $local_part) || empty ($local_part))) loc('add_mailbox', ['warning', 'Mailbox alias must be alphanumeric']);
+		if(!is_numeric($quota_m)) loc('add_mailbox', ['warning', 'Quota is not numeric']);
+
+		if(!empty($password) && !empty($password2))
+		{
+			if($password !== $password2) loc('add_mailbox', ['warning', 'Password mismatch']);
+			$prep_password = escapeshellcmd($password);
+			exec('/usr/bin/doveadm pw -s SHA512-CRYPT -p '.$prep_password.'', $hash, $return);
+			$password_sha512c = $hash[0];
+
+			if($return != "0") loc('add_mailbox', ['warning', 'Error creating password hash']);
+		}
+		else loc('add_mailbox', ['warning', 'Password cannot be empty']);
+
+		if($num_mailboxes >= $num_max_mailboxes) loc('add_mailbox', ['warning', 'Mailbox quota exceeded']);
+
+		$domain = Core::$link->get('domain', 'domain', ['domain' => $domain]);
+		if(!$domain) loc('add_mailbox', ['warning', 'Domain not found']);
+
+		if(!filter_var($username, FILTER_VALIDATE_EMAIL)) loc('add_mailbox', ['warning', 'Mail address is invalid']);
+		if($quota_m > $maxquota_m) loc('add_mailbox', ['warning', 'Quota over max. quota limit']);
+		if(($quota_m_in_use+$quota_m) > $domain_quota_m) loc('add_mailbox', ['warning', 'Quota exceeds quota left']);
+		if(isset($_POST['active']) && $_POST['active'] == 'on') $active = 1;
+		else $active = 0;
+
+		$result_mailbox = Core::$link->insert('mailbox', [
+			'username' => $username,
+			'password' => $password_sha512c,
+			'name' => $name,
+			'maildir' => $maildir,
+			'quota' => $quota_b,
+			'local_part' => $local_part,
+			'domain' => $domain,
+			'#created' => 'NOW()',
+			'#modified' => 'NOW()',
+			'active' => $active
+		]);
+		if(!$result_mailbox) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_quota = Core::$link->insert('quota2', [
+			'username' => $username,
+			'bytes' => '',
+			'messages' => ''
+		]);
+		if(!$result_quota) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_alias = Core::$link->insert('alias', [
+			'address' => $username,
+			'goto' => $username,
+			'domain' => $domain,
+			'#created' => 'NOW()',
+			'#modified' => 'NOW()',
+			'active' => $active
+		]);
+		if(!$result_alias) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_users = Core::$link->query('INSERT INTO users (username, digesta1) VALUES(\''.$username.'\', MD5(CONCAT(\''.$username.'\', \':SabreDAV:\', \''.$password.'\')))');
+		if(!$result_users) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_principals = Core::$link->insert('principals', [
+			'uri' => 'principals/'.$username,
+			'email' => $username,
+			'displayname' => $name
+		]);
+		if(!$result_principals) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_principals_2 = Core::$link->insert('principals', [
+			'uri' => 'principals/'.$username.'/calendar-proxy-read',
+			'email' => false,
+			'displayname' => false
+		]);
+		if(!$result_principals_2) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_principals_3 = Core::$link->insert('principals', [
+			'uri' => 'principals/'.$username.'/calendar-proxy-write',
+			'email' => false,
+			'displayname' => false
+		]);
+		if(!$result_principals_3) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_addressbook = Core::$link->insert('addressbooks', [
+			'principaluri' => 'principals/'.$username,
+			'displayname' => $default_card,
+			'uri' => 'default',
+			'description' => '',
+			'synctoken' => 1
+		]);
+		if(!$result_addressbook) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		$result_calendars = Core::$link->insert('calendars', [
+			'principaluri' => 'principals/'.$username,
+			'displayname' => $default_cal,
+			'uri' => 'default',
+			'description' => '',
+			'components' => 'VEVENT,VTODO',
+			'synctoken' => 0
+		]);
+		if(!$result_calendars) loc('add_mailbox', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
+
+		loc('mailbox', ['success', 'Mailbox has been successfully added']);
+	}
 
 	// public function edit_domain()
 	// {

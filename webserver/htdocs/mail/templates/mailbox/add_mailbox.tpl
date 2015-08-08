@@ -7,7 +7,7 @@
 				</div>
 				<div class="panel-body">
 				<h4>Add a mailbox</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_mailbox">
+				<form class="form-horizontal" role="form" method="post" action="save_add_mailbox">
 				<input type="hidden" name="mailboxaction" value="addmailbox">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="local_part">Mailbox Alias (left part of mail address) <small>(alphanumeric)</small>:</label>
@@ -19,13 +19,11 @@
 						<label class="control-label col-sm-2" for="name">Select domain:</label>
 						<div class="col-sm-10">
 							<select name="domain" size="1">
-<?php
-$result = mysqli_query($link, "SELECT domain FROM domain WHERE domain IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'='$logged_in_role'");
-while ($row = mysqli_fetch_array($result))
-{
-	echo "<option>", $row['domain'], "</option>";
-}
-?>
+								{if $domains}
+									{foreach $domains as $domain}
+										<option value="{$domain['domain']}">{$domain['domain']}</option>
+									{/foreach}
+								{/if}
 							</select>
 						</div>
 					</div>

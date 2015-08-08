@@ -98,4 +98,7 @@ Router::addRoute('/save_add_alias', 'post', 'mailbox', 'save_add_alias', true);
 
 Router::addRoute('/add_domain_alias', 'get', 'mailbox', 'add_domain_alias', true);
 Router::addRoute('/save_add_domain_alias', 'post', 'mailbox', 'save_add_domain_alias', true);
+
+Router::addRoute('/add_mailbox', 'get', 'mailbox', 'add_mailbox', true);
+Router::addRoute('/save_add_mailbox', 'post', 'mailbox', 'save_add_mailbox', true);
 ?>
