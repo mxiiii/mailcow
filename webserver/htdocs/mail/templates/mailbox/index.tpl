@@ -59,7 +59,7 @@
 						<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
 							<i class="glyphicon glyphicon-filter"></i>
 						</span>
-						<a href="add_alias"><span class="glyphicon glyphicon-plus"></span></a>
+						<a href="add_domain_alias"><span class="glyphicon glyphicon-plus"></span></a>
 					</div>
 				</div>
 				<div class="panel-body">
@@ -103,7 +103,7 @@
 						<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
 							<i class="glyphicon glyphicon-filter"></i>
 						</span>
-						<a href="do.php?addmailbox"><span class="glyphicon glyphicon-plus"></span></a>
+						<a href="add_mailbox"><span class="glyphicon glyphicon-plus"></span></a>
 					</div>
 				</div>
 				<div class="panel-body">
@@ -155,7 +155,7 @@
 						<span class="clickable filter" data-toggle="tooltip" title="Toggle table filter" data-container="body">
 							<i class="glyphicon glyphicon-filter"></i>
 						</span>
-						<a href="do.php?addalias"><span class="glyphicon glyphicon-plus"></span></a>
+						<a href="add_alias"><span class="glyphicon glyphicon-plus"></span></a>
 					</div>
 				</div>
 				<div class="panel-body">

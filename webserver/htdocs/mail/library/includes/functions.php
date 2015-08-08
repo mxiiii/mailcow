@@ -10,6 +10,7 @@ function loc($loc = '', $messages = false)
 	}
 
 	header('Location: '.$loc);
+	exit();
 }
 
 function check_login($user, $pass)

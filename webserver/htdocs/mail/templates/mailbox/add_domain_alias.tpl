@@ -7,25 +7,23 @@
 				</div>
 				<div class="panel-body">
 				<h4>Add domain alias</h4>
-				<form class="form-horizontal" role="form" method="post" action="/add_domain_alias">
+				<form class="form-horizontal" role="form" method="post" action="save_add_domain_alias">
 					<input type="hidden" name="mailboxaction" value="addaliasdomain">
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="alias_domain">Alias domain:</label>
 						<div class="col-sm-10">
-						<input type="text" pattern="\b((?=[a-z0-9-]{1,63}\.)[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}\b" class="form-control" name="alias_domain" id="alias_domain">
+						<input type="text" class="form-control" name="alias_domain" id="alias_domain">
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-2" for="name">Target domain:</label>
 						<div class="col-sm-10">
 							<select name="target_domain" size="1">
-<?php
-$result = mysqli_query($link, "SELECT domain FROM domain WHERE domain IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'='$logged_in_role'");
-while ($row = mysqli_fetch_array($result))
-{
-	echo "<option>", $row['domain'], "</option>";
-}
-?>
+								{if $target_domains}
+									{foreach $target_domains as $target_domain}
+										<option value="{$target_domain['domain']}">{$target_domain['domain']}</option>
+									{/foreach}
+								{/if}
 							</select>
 						</div>
 					</div>

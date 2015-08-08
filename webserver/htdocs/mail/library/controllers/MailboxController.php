@@ -115,41 +115,45 @@ class MailboxController extends BaseController
 		else loc('mailbox', ['success', 'Alias has been successfully added']);
 	}
 
-	// public function add_domain_alias()
-	// {
-	// 	$alias_domain = mysqli_real_escape_string($link, $_POST['alias_domain']);
-	// 	$target_domain = mysqli_real_escape_string($link, $_POST['target_domain']);
-	// 	$active = mysqli_real_escape_string($link, $_POST['active']);
-	// 	global $logged_in_role;
-	// 	global $logged_in_as;
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain WHERE domain='$target_domain' AND (domain NOT IN (SELECT domain from domain_admins WHERE username='$logged_in_as') OR 'admin'!='$logged_in_role')")))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Permission denied']);
-	// 	}
-	// 	isset($active) ? $active = '1' : $active = '0';
-	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)) || empty ($alias_domain))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Alias domain name invalid']);
-	// 	}
-	// 	if (!ctype_alnum(str_replace(array('.', '-'), '', $target_domain)) || empty ($target_domain))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Target domain name invalid']);
-	// 	}
-	// 	if (!mysqli_result(mysqli_query($link, "SELECT domain FROM domain where domain='$target_domain'")))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Target domain not found']);
-	// 	}
-	// 	if (mysqli_result(mysqli_query($link, "SELECT alias_domain FROM alias_domain where alias_domain='$alias_domain'")))
-	// 	{
-	// 		loc('mailbox', ['warning', 'Alias domain exists']);
-	// 	}
-	// 	$mystring = "INSERT INTO alias_domain (alias_domain, target_domain, created, modified, active) VALUE ('$alias_domain', '$target_domain', now(), now(), '$active')";
-	// 	if (!mysqli_query($link, $mystring))
-	// 	{
-	// 		loc('mailbox', ['warning', 'MySQL query failed']);
-	// 	}
-	// 	loc('mailbox', ['success', 'Domain alias has been successfully added']);
-	// }
+	public function add_domain_alias()
+	{
+		$target_domains = Core::$link->query('SELECT domain FROM domain WHERE domain IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\') OR \'admin\' = \''.$_SESSION['role'].'\'');
+		Core::$template->assign('target_domains', $target_domains);
+	}
+
+	public function save_add_domain_alias()
+	{
+
+		$alias_domain = $_POST['alias_domain'];
+		$target_domain = $_POST['target_domain'];
+		$active = $_POST['active'];
+
+		if(empty($alias_domain) || empty($target_domain)) loc('add_domain_alias', ['warning', 'No Domain provided']);
+
+		$result_1 = Core::$link->query('SELECT domain FROM domain WHERE domain = \''.$target_domain.'\' AND (domain NOT IN (SELECT domain from domain_admins WHERE username = \''.$_SESSION['username'].'\) OR \'admin\' != \''.$_SESSION['role'].'\')');
+		if(!result_1) loc('add_domain_alias', ['warning', 'Permission denied']);
+
+		isset($active) ? $active = '1' : $active = '0';
+		if(!ctype_alnum(str_replace(array('.', '-'), '', $alias_domain)) || empty ($alias_domain)) loc('add_domain_alias', ['warning', 'Alias domain name invalid']);
+		if(!ctype_alnum(str_replace(array('.', '-'), '', $target_domain)) || empty ($target_domain)) loc('add_domain_alias', ['warning', 'Target domain name invalid']);
+
+		$domain = Core::$link->get('domain', 'domain', ['domain' => $target_domain]);
+		if($domain) loc('add_domain_alias', ['warning', 'Target domain not found']);
+
+		$domain_alias = Core::$link->get('alias_domain', 'alias_domain', ['alias_domain' => $alias_domain]);
+		if(!$domain_alias) loc('add_domain_alias', ['warning', 'Alias domain exists']);
+
+		$result = Core::$link->insert('alias_domain', [
+			'alias_domain' => $alias_domain,
+			'target_domain' => $target_domain,
+			'#created' => 'NOW()',
+			'#modified' => 'NOW()',
+			'active' => $active,
+		]);
+
+		if(!$result) loc('add_domain_alias', ['warning', 'MySQL query failed']);
+		loc('mailbox', ['success', 'Domain alias has been successfully added']);
+	}
 
 	// public function edit_domain_admin()
 	// {
