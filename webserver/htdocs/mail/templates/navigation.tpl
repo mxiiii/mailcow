@@ -21,10 +21,10 @@
 									<a href="/admin">Administration</a>
 								</li>
 							{/if}
-							
+
 							{if $smarty.session['role'] == 'admin' || $smarty.session['role'] == 'domainadmin'}
 								<li>
-									<a href="/mailbox.php">Mailboxes</a>
+									<a href="/mailbox">Mailboxes</a>
 								</li>
 							{/if}
 

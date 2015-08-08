@@ -86,25 +86,29 @@ class MailboxController extends BaseController
 
 		if(!filter_var($address, FILTER_VALIDATE_EMAIL))
 		{
-			$result = Core::$link->insert('alias', [
-				'address' => '@'.$domain,
-				'goto' => $goto,
-				'domain' => $domain,
-				'#created' => 'NOW()',
-				'#modified' => 'NOW()',
-				'active' => $active,
-			]);
+			// $result = Core::$link->insert('alias', [
+			// 	'address' => '@'.$domain,
+			// 	'goto' => $goto,
+			// 	'domain' => $domain,
+			// 	'#created' => 'NOW()',
+			// 	'#modified' => 'NOW()',
+			// 	'active' => $active,
+			// ]);
+
+			$result = Core::$link->query('INSERT INTO alias (address, goto, domain, created, modified, active) VALUES (\'@'.$domain.'\', \''.$goto.'\', \''.$domain.'\', NOW(), NOW(), '.$active.')');
 		}
 		else
 		{
-			$result = Core::$link->insert('alias', [
-				'address' => $address,
-				'goto' => $goto,
-				'domain' => $domain,
-				'#created' => 'NOW()',
-				'#modified' => 'NOW()',
-				'active' => $active,
-			]);
+			// $result = Core::$link->insert('alias', [
+			// 	'address' => $address,
+			// 	'goto' => $goto,
+			// 	'domain' => $domain,
+			// 	'#created' => 'NOW()',
+			// 	'#modified' => 'NOW()',
+			// 	'active' => $active,
+			// ]);
+
+			$result = Core::$link->query('INSERT INTO alias (address, goto, domain, created, modified, active) VALUES (\''.$address.'\', \''.$goto.'\', \''.$domain.'\', NOW(), NOW(), '.$active.')');
 		}
 
 		if(!$result) loc('add_alias', ['warning', 'MySQL query failed.<br>'.Core::$link->last_query()]);
