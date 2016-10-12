@@ -1,0 +1,47 @@
+#!/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/sbin:/usr/sbin:/bin:/usr/bin:/usr/bin/X11
+
+greenb() { echo $(tput bold)$(tput setaf 2)${1}$(tput sgr0); }
+redb() { echo $(tput bold)$(tput setaf 1)${1}$(tput sgr0); }
+yellowb() { echo $(tput bold)$(tput setaf 3)${1}$(tput sgr0); }
+
+genpasswd() {
+    count=0
+    while [ $count -lt 3 ]
+    do
+        pw_valid=$(tr -cd A-Za-z0-9 < /dev/urandom | fold -w24 | head -n1)
+        count=$(grep -o "[0-9]" <<< $pw_valid | wc -l)
+    done
+    echo $pw_valid
+}
+
+DBHOST=$(grep database_host /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+DBNAME=$(grep database_name /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+DBUSER=$(grep database_user /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+DBPASS=$(grep database_pass /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+PASS_SCHEME=$(grep HASHING /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+
+echo "---------------------------"
+echo "mailcow administrator reset"
+echo "---------------------------"
+echo -n "Found admin: "
+ADMIN_NAME=$(mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "SELECT username FROM admin WHERE superadmin='1';" -N -B)
+echo $(yellowb ${ADMIN_NAME})
+echo "---------------------------"
+NEWPASS=$(genpasswd)
+while true; do
+read -p "Reset password? (y/n) " confirm
+        if [[ $confirm == "y" ]]; then
+                ADMIN_NEWPW_HASH=$(doveadm pw -s ${PASS_SCHEME} -p ${NEWPASS})
+                mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "DELETE FROM admin WHERE username='${ADMIN_NAME}';"
+                mysql --host ${DBHOST} -u ${DBUSER} -p${DBPASS} ${DBNAME} -e "INSERT INTO admin VALUES ('${ADMIN_NAME}','${ADMIN_NEWPW_HASH}',1,now(),now(),1);"
+                echo
+                echo $(greenb "New password: ${NEWPASS}")
+                echo
+                exit 0
+        elif [[ $confirm == "n" ]]; then
+                exit 0
+        else
+                echo $(redb "Invalid choice")
+        fi
+done

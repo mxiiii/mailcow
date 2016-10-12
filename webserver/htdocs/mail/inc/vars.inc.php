@@ -1,41 +1,61 @@
 <?php
-/* Database connection*/
+
+/*
+PLEASE USE THE FILE "vars.local.inc.php" TO OVERWRITE SETTINGS AND MAKE THEM PERSISTENT!
+This file will be reset on upgrades.
+*/
+
+// SQL database connection variables
+$database_type = "mysql";
 $database_host = "my_dbhost";
 $database_user = "my_mailcowuser";
 $database_pass = "my_mailcowpass";
 $database_name = "my_mailcowdb";
 
-// if NAT or IPv6
-if (isset($_SERVER['SERVER_ADDR'])) {
-	$IP=$_SERVER['SERVER_ADDR'];
-}
-else {
-	$IP="";
-}
-if (!filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-	$IP="YOUR.IP.V.4";
-}
-elseif (!filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE)) {
-	$IP="YOUR.IP.V.4";
-}
+// Where to go after adding and editing objects
+// Can be "form" or "previous"
+// "form" will stay in the current form, "previous" will redirect to previous page
+$FORM_ACTION = "previous";
 
-/* Postfix tables */
-$mailcow_anonymize_headers = "/etc/postfix/mailcow_anonymize_headers.pcre";
+// File locations should not be changed
+$MC_ANON_HEADERS = "/etc/postfix/mailcow_anonymize_headers.pcre";
+$MC_PUB_FOLDER = "/etc/dovecot/mailcow_public_folder.conf";
+$MC_ODKIM_TXT = "/etc/opendkim/dnstxt";
+$PFLOG = "/var/log/pflogsumm.log";
 
-/* Dovecot */
-$mailcow_public_folder= "/etc/dovecot/mailcow_public_folder.conf";
+// Change default language, "en", "pt" or "de"
+$DEFAULT_LANG = "en";
 
-/* OpenDKIM DNS desc */
-$mailcow_opendkim_dnstxt_folder = "/etc/opendkim/dnstxt";
+// Change theme (default: lumen)
+// Needs to be one of those: cerulean, cosmo, cyborg, darkly, flatly, journal, lumen, paper, readable, sandstone,
+// simplex, slate, spacelab, superhero, united, yeti
+// See https://bootswatch.com/
+$DEFAULT_THEME = "lumen";
 
-/* Data files */
-$MC_MBOX_BACKUP = "/var/www/MAILBOX_BACKUP";
-$PFLOG = "/var/www/PFLOG";
+// Unlisted elements cannot be moved to "inactive".
+// reject_unauth_destination is not listed to prevent accidental removal.
+// Known smtpd_sender_restrictions:
+$VALID_SSR = array(
+	'reject_authenticated_sender_login_mismatch',
+	'permit_mynetworks',
+	'reject_sender_login_mismatch',
+	'permit_sasl_authenticated',
+	'reject_unlisted_sender',
+	'reject_unknown_sender_domain',
+);
+// Known smtpd_recipient_restrictions:
+$VALID_SRR = array(
+	'permit_sasl_authenticated',
+	'permit_mynetworks',
+	'reject_invalid_helo_hostname',
+	'reject_unknown_helo_hostname',
+	'reject_unknown_reverse_client_hostname',
+	'reject_unknown_client_hostname',
+	'reject_non_fqdn_helo_hostname',
+	'greylist',
+);
 
-$MYHOSTNAME=exec("/usr/sbin/postconf -h myhostname");
-$MYHOSTNAME_0=explode(".", exec("/usr/sbin/postconf -h myhostname"))[0];
-$MYHOSTNAME_1=explode(".", exec("/usr/sbin/postconf -h myhostname"))[1];
-$MYHOSTNAME_2=explode(".", exec("/usr/sbin/postconf -h myhostname"))[2];
-$DAV_SUBDOMAIN="dav";
+// Default hashing mechanism should not be changed. If changed, adjust dovecot-mysql.conf accordingly
+$HASHING = "MAILCOW_HASHING";
 
 ?>

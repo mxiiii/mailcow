@@ -8,35 +8,41 @@ cat includes/banner
 source includes/versions
 source includes/functions.sh
 
-while getopts uhUH:D:? par; do
-case $par in
+while getopts suhH:D:? par; do
+case ${par} in
 	h|'?')
 		usage
 		exit 0
 		;;
 	u|U)
-		[[ ${par} == "U" ]] && inst_unattended="yes"
 		is_upgradetask="yes"
 		;;
 	H) sys_hostname="$OPTARG" ;;
 	D) sys_domain="$OPTARG" ;;
+	s) retry_lets_encrypt="yes" ;;
 esac
 done
 
 if [[ ${is_upgradetask} == "yes" ]]; then
 	upgradetask
-	echo ${mailcow_version} > /etc/mailcow_version
+	echo "${mailcow_version}, ${mailing_platform}" > /etc/mailcow_version
 echo --------------------------------- >> installer.log
-echo UPGRADE to ${mailcow_version} on $(date) >> installer.log
-echo --------------------------------- >> installer.log
-echo Fail2ban version: ${fail2ban_version} >> installer.log
-echo Roundcube version: ${roundcube_version} >> installer.log
-echo FuGlu version: ${fuglu_version} >> installer.log
+echo UPGRADE to ${mailcow_version}_${mailing_platform} on $(date) >> installer.log
 echo --------------------------------- >> installer.log
 	exit 0
 fi
 
 source mailcow.config
+
+if [[ ${retry_lets_encrypt} == "yes" ]]; then
+	returnwait "Obtain Let's Encrypt signed certificates"
+	installtask ssl_le
+
+	returnwait "Restarting services" "no"
+	installtask restartservices
+	exit 0
+fi
+
 checksystem
 checkports
 checkconfig
@@ -45,27 +51,33 @@ echo "    $(textb "Hostname")            ${sys_hostname}
     $(textb "Domain")              ${sys_domain}
     $(textb "FQDN")                ${sys_hostname}.${sys_domain}
     $(textb "Timezone")            ${sys_timezone}
-    $(textb "mailcow MySQL")       ${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}/${my_mailcowdb}
-    $(textb "Roundcube MySQL")     ${my_rcuser}:${my_rcpass}@${my_dbhost}/${my_rcdb}
+    -----------------------------------------------
+    $(textb "MySQL root pwd")      ${my_rootpw}
+    $(textb "mailcow MySQL URI")   ${my_mailcowuser}:${my_mailcowpass}@${my_dbhost}/${my_mailcowdb}"
+if [[ ${mailing_platform} == "roundcube" ]]; then
+	echo "    $(textb "Roundcube MySQL URI") ${my_rcuser}:${my_rcpass}@${my_dbhost}/${my_rcdb}"
+fi
+echo "    -----------------------------------------------
     $(textb "mailcow admin user")  ${mailcow_admin_user}
-"
-
-returnwait "Reading configuration" "System environment"
-
+    $(textb "mailcow admin pwd")   ${mailcow_admin_pass}
+    -----------------------------------------------
+    $(textb "mailcow version:")      ${mailcow_version}_${mailing_platform}"
+echo
+returnwait "System environment"
 echo --------------------------------- > installer.log
 echo MySQL database host: ${my_dbhost}  >> installer.log
-echo --------------------------------- >> installer.log
-echo Use existing database: ${my_useexisting}  >> installer.log
 echo --------------------------------- >> installer.log
 echo MySQL mailcow database: ${my_mailcowdb} >> installer.log
 echo MySQL mailcow username: ${my_mailcowuser} >> installer.log
 echo MySQL mailcow password: ${my_mailcowpass} >> installer.log
 echo --------------------------------- >> installer.log
-echo MySQL Roundcube database: ${my_rcdb} >> installer.log
-echo MySQL Roundcube username: ${my_rcuser} >> installer.log
-echo MySQL Roundcube password: ${my_rcpass} >> installer.log
-echo --------------------------------- >> installer.log
-echo Only set when MySQL was not available >> installer.log
+if [[ ${mailing_platform} == "roundcube" ]]; then
+	echo MySQL Roundcube database: ${my_rcdb} >> installer.log
+	echo MySQL Roundcube username: ${my_rcuser} >> installer.log
+	echo MySQL Roundcube password: ${my_rcpass} >> installer.log
+	echo --------------------------------- >> installer.log
+fi
+echo \! Only set when MySQL was not available >> installer.log
 echo MySQL root password: ${my_rootpw} >> installer.log
 echo --------------------------------- >> installer.log
 echo mailcow administrator >> installer.log
@@ -76,64 +88,61 @@ echo FQDN: ${sys_hostname}.${sys_domain} >> installer.log
 echo Timezone: ${sys_timezone} >> installer.log
 echo --------------------------------- >> installer.log
 echo Web root: https://${sys_hostname}.${sys_domain} >> installer.log
-echo DAV web root: https://${httpd_dav_subdomain}.${sys_domain} >> installer.log
-echo Autodiscover \(Z-Push\): https://autodiscover.${sys_domain} >> installer.log
 echo --------------------------------- >> installer.log
-echo Fail2ban version: $fail2ban_version >> installer.log
-echo Roundcube version: $roundcube_version >> installer.log
-echo FuGlu version: ${fuglu_version} >> installer.log
-echo mailcow version: ${mailcow_version} >> installer.log
+echo mailcow version: ${mailcow_version}_${mailing_platform} >> installer.log
 echo --------------------------------- >> installer.log
 
 installtask environment
-returnwait "System environment" "Package installation"
 
+returnwait "Package installation"
 installtask installpackages
-returnwait "Package installation" "Self-signed certificate"
 
+returnwait "Certificate configuration"
 installtask ssl
-returnwait "Self-signed certificate" "MySQL configuration"
 
+returnwait "MySQL configuration"
 installtask mysql
-returnwait "MySQL configuration" "Postfix configuration"
 
+returnwait "Postfix configuration"
 installtask postfix
-returnwait "Postfix configuration" "Dovecot configuration"
 
+returnwait "Dovecot configuration"
 installtask dovecot
-returnwait "Dovecot configuration" "FuGlu configuration"
 
+returnwait "FuGlu configuration"
 installtask fuglu
-returnwait "FuGlu configuration" "ClamAV configuration"
 
+returnwait "ClamAV configuration"
 installtask clamav
-returnwait "ClamAV configuration" "Spamassassin configuration"
 
+returnwait "Spamassassin configuration"
 installtask spamassassin
-returnwait "Spamassassin configuration" "Webserver configuration"
 
+returnwait "Webserver configuration"
 installtask webserver
-returnwait "Webserver configuration" "Roundcube configuration"
 
-installtask roundcube
-returnwait "Roundcube configuration" "Rsyslogd configuration"
+if [[ ${mailing_platform} == "roundcube" ]]; then
+	returnwait "Roundcube configuration"
+	installtask roundcube
+else
+	returnwait "SOGo configuration"
+	installtask sogo
+fi
 
-installtask rsyslogd
-returnwait "Rsyslogd configuration" "Fail2ban configuration"
-
-installtask fail2ban
-returnwait "Fail2ban configuration" "OpenDKIM configuration"
-
+returnwait "OpenDKIM configuration"
 installtask opendkim
-returnwait "OpenDKIM configuration" "Restarting services"
 
+returnwait "Restarting services"
 installtask restartservices
-returnwait "Restarting services" "Checking DNS settings"
 
-installtask checkdns
-returnwait "Checking DNS settings" "Finish installation"
+if [[ ${use_lets_encrypt} == "yes" ]]; then
+	returnwait "Obtain Let's Encrypt signed certificates"
+	installtask ssl_le
+fi
 
-echo ${mailcow_version} > /etc/mailcow_version
+returnwait "Finish installation" "no"
+
+echo ${mailcow_version}_${mailing_platform} > /etc/mailcow_version
 chmod 600 installer.log
 echo
 echo "`tput setaf 2`Finished installation`tput sgr0`"
@@ -141,8 +150,10 @@ echo "Logged credentials and further information to file `tput bold`installer.lo
 echo
 echo "Next steps:"
 echo " * Backup installer.log to a safe place and delete it from your server"
-echo " * Open \"https://$sys_hostname.$sys_domain\" and login to mailcow control center as $mailcow_admin_user to create a domain and a mailbox. Please use the full URL and not your IP address."
-echo " * Please do not use port 25 in your mail client, use port 587 instead."
-echo " * Setup SPF records!"
-echo " * You may or may not see some information about your domains DNS. SRV records are not necessarily needed. Please see the wiki for help @ https://github.com/andryyy/mailcow/wiki"
+echo " * Login to https://$sys_hostname.$sys_domain (please use the full URL and not your IP address)"
+echo "   Username: ${mailcow_admin_user}"
+echo "   Password: ${mailcow_admin_pass}"
+echo " * Please recheck PTR records in ReverseDNS for both IPv4 and IPv6, also verify you have setup SPF TXT records."
+echo " * Please see the wiki for help @ https://github.com/andryyy/mailcow/wiki before opening an issue"
 echo
+

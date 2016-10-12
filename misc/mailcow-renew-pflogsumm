@@ -1,0 +1,4 @@
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PFLOGPATH=$(grep PFLOG /var/www/mail/inc/vars.inc.php | cut -d'"' -f2)
+pflogsumm /var/log/mail.log > "${PFLOGPATH}"

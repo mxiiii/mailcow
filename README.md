@@ -1,16 +1,10 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Please help mailcow to grow with a little donation**
-
-**Contact me for a managed installation**
-
-[![PayPal donate button](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JWBSYHF4SMC68 "Donate to this project using Paypal")
-
 ![mailcow](https://www.debinux.de/256.png)
 
 - [mailcow](#mailcow)
 - [Introduction](#introduction)
-- [Before You Begin](#before-you-begin)
+- [Before You Begin (Prerequisites)](#before-you-begin)
 - [Installation](#installation)
 - [Upgrade](#upgrade)
 - [Uninstall](#uninstall)
@@ -20,64 +14,43 @@
 mailcow
 =====
 
-mailcow is a mail server suite based on Dovecot, Postfix and other open source software, that provides a modern Web UI for administration.
-In future versions mailcow will provide Cal- and CardDAV support.
+mailcow is a mail server suite based on Dovecot, Postfix and other open source software, that provides a modern web UI for user/server administration.
 
-For **Debian and Debian based distributions**. 
+mailcow supports **Debian 8 Jessie, Ubuntu LTS 14.04 Trusty and Ubuntu LTS 16.04 Xenial**
 
-This script is permanently **tested on Debian stable (8.x)**.
-Debian Squeeze is not supported.
-
-Ubuntu 14.04 is fine but not recommended.
-
-**Please see this album on imgur.com for screenshots -> http://imgur.com/a/elHnA**
+[Everybody loves screenshots (v0.14)](http://imgur.com/a/lWX2V)
 
 # Introduction
-A summary of what software is installed with which features enabled.
 
-**General setup**
-* Automatically generated passwords with high complexity
 * Multi-SAN self-signed SSL certificate for all installed and supporting services
-* Nginx or Apache2 installation (+PHP5-FPM)
-* MySQL or MariaDB database backend, remote database support
-* **Z-Push** integration (IMAP, CalDAV and CardDAV)
-* DNS-Checks (PTR, A-Record, SPF etc.)
-* Learn ham and spam, [Heinlein Support](https://www.heinlein-support.de/) SA rules included
-* Fail2ban brute force protection
-* A "mailcow control center" via browser: Add domains, mailboxes, aliases and more
-* Tagged mail like "username+tag@example.com" will be moved to folder "tag"
-* Advanced ClamAV filters (ClamAV can be turned off, quarantined items can be downloaded)
-
-**Postfix**
-* Postscreen activated
-* Submission port (587/TCP), TLS-only
-* SMTPS (465/TCP)
+    * Let's Encrypt optional
+* Webserver installation
+    * Apache or Nginx (+PHP5-FPM)
+* SQL database backend, remote database support
+    * MySQL or MariaDB
+* **mailcow web UI**
+    * Add domains, mailboxes, aliases, set limits, enforce TLS outgoing and incoming, monitor mail statistics, change mail server settings, create/delete DKIM records and more...
+* Postscreen activated and configured
+* STARTTLS and SMTPS support
 * The default restrictions used are a good compromise between blocking spam and avoiding false-positives
-* Change recipient restrictions in control center
-* Blacklist senders in control center
-* Incoming and outgoing spam protection
-* VirusTotal Uploader for incoming mail
-* SSL based on BetterCrypto
-* OpenDKIM, manage signatures in control center
-
-**Dovecot**
-* Default mailboxes to subscribe to automatically (Inbox, Sent, Drafts, Trash, Junk, Archive - "SPECIAL-USE" tags)
-* Sieve/ManageSieve
+* Incoming and outgoing spam and virus protection with FuGlu as pre-queue content filter; [Heinlein Support](https://www.heinlein-support.de/) spamassassin rules included; Advanced ClamAV malware filters
+* Sieve/ManageSieve (default filter: move spam to "Junk" folder, move tagged mail to folder "tag")
 * Public folder support via control center
 * per-user ACL
-* Shared Namespace (per-user seen-flag)
-* Global sieve filter: Move mail marked as spam into "Junk"
-* (IMAP) Quotas
-* LMTP service for Postfix virtual transport
-* SSL based on BetterCrypto
+* Shared Namespace
+* Quotas
+* Auto-configuration for ActiveSync + Thunderbird (and its derivates)
 
-**Roundcube**
-* ManageSieve support (w/ vacation)
-* Users can change password
-* Attachment reminder (multiple locales)
-* Zip-download marked messages
+Comes with...
+* Roundcube
+    * ManageSieve support (w/ vacation)
+    * Attachment reminder (multiple locales)
+    * Zip-download marked messages
+or
+* SOGo
+    * Full groupware with ActiveSync and Card-/CalDAV support
 
-# Before You Begin
+# Before You Begin: Prerequisites
 - **Please remove any web- and mail services** running on your server. I recommend using a clean Debian minimal installation.
 Remember to purge Debians default MTA Exim4:
 ```
@@ -96,7 +69,39 @@ apt-get purge exim4*
 | Dovecot ManageSieve   | TCP      | 4190   |
 | HTTP(S)               | TCP      | 80/443 |
 
+- Setup DNS records:
+
+Obviously you will need an A and/or AAAA record `sys_hostname.sys_domain` pointing to your IP address and a valid MX record.
+Let's Encrypt does not assign certificates when it cannot determine a valid IPv4 address.
+
+| Name                       | Type   | Value                        | Priority   |
+| ---------------------------|:------:|:----------------------------:|:-----------|
+| `sys_hostname.sys_domain`  | A/AAAA | IPv4/6                       | any        |
+| `sys_domain`               | MX     | `sys_hostname.sys_domain`25  |            |
+
+Optional: Auto-configuration services for Thunderbird (and derivates) + ActiveSync.
+You do not need to setup `autodiscover` when not using SOGo with ActiveSync.
+
+| Name                       | Type   | Value                        | Priority   |
+| ---------------------------|:------:|:----------------------------:|:-----------|
+| autoconfig.`sys_domain`    | A/AAAA | IPv4/6                       | any        |
+| autodiscover.`sys_domain`  | A/AAAA | IPv4/6                       | any        |
+
+**Hint:** ActiveSync auto-discovery is setup to configure desktop clients with IMAP!
+
+The following records are optional but recommended:
+
+Please setup a SPF TXT record according to docs you will find on the internet.
+SPF is broken by design and a huge headache when it comes to forwarding.
+Try to not push yourself with a `-all` record but prefere `?all`. Also known as "I use SPF but I do not actually care". :-)
+
+After finishing the installation, head to the mailcow web UI, log in as admin and create DKIM TXT records for your domains.
+You will find them ready to copy and paste to your DNS servers configuration.
+
 - Next it is important that you **do not use Google DNS** or another public DNS which is known to be blocked by DNS-based Blackhole List (DNSBL) providers.
+
+I recommend PowerDNS Recursor as a local recursor with DNSSEC capabilities. See https://repo.powerdns.com/
+Though any non-blocked or ratelimited DNS server your ISP gave you *should* be fine.
 
 # Installation
 **Please run all commands as root**
@@ -118,9 +123,13 @@ nano mailcow.config
 
 * **sys_hostname** - Hostname without domain
 * **sys_domain** - Domain name. "$sys_hostname.$sys_domain" equals to FQDN.
+
+:exclamation: Please make sure your FQDN resolves correctly!
+
 * **sys_timezone** - The timezone must be defined in a valid format (Europe/Berlin, America/New_York etc.)
+* **use_lets_encrypt** - Tries to obtain a certificate from Let's Encrypt CA. If it fails, it can be retried by calling `./install.sh -s`. Installs a cronjob to renew the certificate but keeps the same key.
 * **httpd_platform** - Select wether to use Nginx ("nginx") or Apache2 ("apache2"). Nginx is default.
-* **httpd_dav_subdomain** - A dedicated subdomain for Cal- and CardDAV. Must not be sys_hostname.
+* **mailing_platform** - Can be "sogo" or "roundcube"
 * **my_dbhost** - ADVANCED: Leave as-is ("localhost") for a local database installation. Anything but "localhost" or "127.0.0.1" is recognized as a remote installation.
 * **my_usemariadb** - Use MariaDB instead of MySQL. Only valid for local databases. Installer stops when MariaDB is detected, but MySQL selected - and vice versa.
 * **my_mailcowdb, my_mailcowuser, my_mailcowpass** - SQL database name, username and password for use with Postfix. **You can use the default values.**
@@ -128,7 +137,7 @@ nano mailcow.config
 * **my_rootpw** - SQL root password is generated automatically by default. You can define a complex password here if you want to. *Set to your current root password to use an existing SQL instance*.
 * **mailcow_admin_user and mailcow_admin_pass** - mailcow administrator. Password policy: minimum length 8 chars, must contain uppercase and lowercase letters and at least 2 digits. **You can use the default values**.
 * **inst_debug** - Sets Bash mode -x
-* An unattended installation is possible, but not recommended ("inst_unattended")
+* **inst_confirm_proceed** - Skip "Press any key to continue" dialogs by setting this to "no"
 
 **Empty configuration values are invalid!**
 
@@ -144,26 +153,29 @@ More debugging is about to come. Though everything should work as intended.
 
 After the installation, visit your dashboard @ **https://hostname.example.com**, use the logged credentials in `./installer.log`
 
-Remember to create an alias- or a mailbox for Postmaster. ;-)
+Remember to create an alias- or a mailbox for `postmaster`.
 
-Please set/update all DNS records accordingly. See "FAQ" -> "DNS records" in your mailcow admin panel.
+Again, please check you setup all DNS records accordingly.
+
+## Web UI configuration variables
+
+Some settings can be changed be overwriting defaults of `/var/www/mail/inc/vars.inc.php` in `/var/www/mail/inc/vars.local.inc.php`.
+
+Changes to `/var/www/mail/inc/vars.local.inc.php` will not be overwritten when upgrading mailcow.
+
+##
 
 # Upgrade
 **Please run all commands as root**
 
-Upgrade is supported since mailcow v0.7.x. From v0.9 on you do not need the file `installer.log` from a previous installation.
-
-The mailcow configuration file will not be read, so there is no need to adjust it in any way before upgrading.
+The mailcow configuration file (mailcow.config) will not be read, so there is no need to adjust it in any way before upgrading.
 
 To start the upgrade, run the following command:
 ```
 ./install.sh -u
 ```
 
-If you don't want to confirm each step of the upgrade, use `-U` instead:
-```
-./install -U
-```
+**Please double check the detected FQDN!**
 
 When autodetection of your hostname and/or domain name fails, use the `-H` parameter to overwrite the hostname and/or `-D` to overwrite the domain name:
 ```
@@ -172,14 +184,68 @@ When autodetection of your hostname and/or domain name fails, use the `-H` param
 ```
 
 # Uninstall
-Run `bash misc/purge.sh` from within mailcow directory to remove mailcow main components.
+Please remove the components you do not need manually. mailcow installs components that may be used by other software on your system.
+mailcow is an installer that installs and configures software, so there is no routine to remove itself.
 
-Your web server + web root, MySQL server + databases as well as your mail directory (/var/vmail) will **not** be removed (>= v0.9).
+**A list of by apt-get installed components**
+```
+# System tools
+dnsutils sudo zip bzip2 unzip unrar-free curl openssl file bsd-mailx
 
-Please open and review the script before running it!
+# Core components
+# ${OPENJDK} is either "openjdk-7" or "openjdk-9"
+rrdtool mailgraph fcgiwrap spawn-fcgi python-setuptools libmail-spf-perl libmail-dkim-perl mailutils pyzor razor postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc opendkim opendkim-tools clamav-daemon python-magic liblockfile-simple-perl libdbi-perl libmime-base64-urlsafe-perl libtest-tempdir-perl liblogger-syslog-perl ${OPENJDK}-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty
 
-**You can perform a FULL WIPE** by appending `--all`:
+# PHP components
+# ${PHP} is either PHP or PHP5
+php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp php-net-socket php-net-url php-pear php-soap ${PHP} ${PHP}-cli ${PHP}-common ${PHP}-curl ${PHP}-gd ${PHP}-imap ${PHP}-intl ${PHP}-xsl libawl-php ${PHP}-mcrypt ${PHP}-mysql ${PHP}-xmlrpc
 
-```bash misc/purge.sh --all```
+# Database components
+mariadb-client mariadb-server
+# or...
+mysql-client mysql-server
 
-This WILL purge sensible data like your web root, databases + MySQL installation, mail directory and more... 
+# Webserver components
+# ${PHP} is either PHP or PHP5
+apache2 apache2-utils libapache2-mod-${PHP}
+# or...
+nginx-extras ${PHP}-fpm
+
+# Dovecot components
+dovecot-common dovecot-core dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-sieve dovecot-mysql dovecot-pop3d dovecot-solr
+
+# SOGo
+# ALSO: rm /etc/apt/sources.list.d/sogo.list
+sogo sogo-activesync libwbxml2-0 memcached
+
+```
+
+**System modifications**
+```
+# Cronjobs
+rm /etc/cron.daily/mc_clean_spam_aliases /etc/cron.daily/mailcow-clean-spam-aliases /etc/cron.daily/dovemaint /etc/cron.d/solrmaint /etc/cron.daily/spamlearn /etc/cron.daily/spamassassin_heinlein /etc/cron.weekly/le-renew
+
+# Sudo
+rm /etc/sudoers.d/mailcow
+
+# Executables
+rm /usr/local/sbin/mailcow-reset-admin /usr/local/sbin/mailcow-dkim-tool /usr/local/sbin/mailcow-set-message-limit /usr/local/sbin/mailcow-renew-pflogsumm /usr/local/sbin/mc_pflog_renew /usr/local/sbin/mc_msg_size /usr/local/sbin/mc_dkim_ctrl /usr/local/sbin/mc_resetadmin
+```
+
+**Manually installed components and miscellaneous**
+```
+# Databases
+# Besides aboves packages, you may want to drop the mailcow and, if installed, Roundcube database. SOGo uses the mailcow database.
+DROP DATABASE $mailcowdb;
+DROP DATABASE $roundcubedb;
+ 
+# Let's Encrypt
+rm -r /opt/letsencrypt-sh/
+
+# FuGlu
+systemctl disable fuglu
+rm -rf /usr/local/lib/python2.7/dist-packages/fuglu*
+update-rc.d -f fuglu remove
+userdel fuglu
+```
+

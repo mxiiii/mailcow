@@ -1,45 +1,57 @@
 <?php
 require_once("inc/header.inc.php");
+$_SESSION['return_to'] = $_SERVER['REQUEST_URI'];
+?>
+<?php
+if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'admin') {
 ?>
 <div class="container">
-<?php
-if (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes" && $_SESSION['mailcow_cc_role'] == "admin") {
-$_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
-?>
-<h4><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Access</h4>
+<h4><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <?=$lang['admin']['access'];?></h4>
 <div class="panel-group" id="accordion_access">
-	<div class="panel panel-default">
-		<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_access" data-target="#collapseAdmin">
-			<a style="cursor:pointer;" class="accordion-toggle">Administrators</a>
+	<div class="panel panel-danger">
+		<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_access" data-target="#collapseAdmin">
+			<span class="accordion-toggle"><?=$lang['admin']['admin_details'];?></span>
 		</div>
-		<div id="collapseAdmin" class="panel-collapse collapse in">
+		<div id="collapseAdmin" class="panel-collapse collapse">
 			<div class="panel-body">
 				<form class="form-horizontal" autocapitalize="none" autocorrect="off" role="form" method="post">
 				<?php
-				$result = mysqli_fetch_assoc(mysqli_query($link, "SELECT username from admin where superadmin='1' and active='1'"));
+				try {
+				$stmt = $pdo->prepare("SELECT `username` FROM `admin`
+					WHERE `superadmin`='1' and active='1'");
+				$stmt->execute();
+				$AdminData = $stmt->fetch(PDO::FETCH_ASSOC);
+				}
+				catch(PDOException $e) {
+					$_SESSION['return'] = array(
+						'type' => 'danger',
+						'msg' => 'MySQL: '.$e
+					);
+				}
 				?>
-					<input type="hidden" name="admin_user_now" value="<?=$result['username'];?>">
+					<input type="hidden" name="admin_user_now" value="<?=$AdminData['username'];?>">
 					<div class="form-group">
-						<label class="control-label col-sm-2" for="admin_user">Administrator:</label>
+						<label class="control-label col-sm-2" for="admin_user"><?=$lang['admin']['admin'];?>:</label>
 						<div class="col-sm-10">
-						<input type="text" class="form-control" name="admin_user" id="admin_user" value="<?=$result['username'];?>" required>
+							<input type="text" class="form-control" name="admin_user" id="admin_user" value="<?=$AdminData['username'];?>" required>
+							&rdsh; <kbd>a-z A-Z - _ .</kbd>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-2" for="admin_pass">Password:</label>
+						<label class="control-label col-sm-2" for="admin_pass"><?=$lang['admin']['password'];?>:</label>
 						<div class="col-sm-10">
-						<input type="password" class="form-control" name="admin_pass" id="admin_pass" placeholder="Unchanged if empty">
+						<input type="password" class="form-control" name="admin_pass" id="admin_pass" placeholder="<?=$lang['admin']['unchanged_if_empty'];?>">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-2" for="admin_pass2">Password (repeat):</label>
+						<label class="control-label col-sm-2" for="admin_pass2"><?=$lang['admin']['password_repeat'];?>:</label>
 						<div class="col-sm-10">
 						<input type="password" class="form-control" name="admin_pass2" id="admin_pass2">
 						</div>
 					</div>
 					<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
-							<button type="submit" name="trigger_set_admin" class="btn btn-default">Save changes</button>
+							<button type="submit" name="trigger_set_admin" class="btn btn-default"><?=$lang['admin']['save'];?></button>
 						</div>
 					</div>
 				</form>
@@ -48,34 +60,69 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 	</div>
 
 	<div class="panel panel-default">
-	<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_access" data-target="#collapseDomAdmins">
-		<a style="cursor:pointer;" class="accordion-toggle">Domain administrators</a>
+	<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_access" data-target="#collapseDomAdmins">
+		<span class="accordion-toggle"><?=$lang['admin']['domain_admins'];?></span>
 	</div>
-		<div id="collapseDomAdmins" class="panel-collapse collapse in">
+		<div id="collapseDomAdmins" class="panel-collapse collapse">
 			<div class="panel-body">
 				<form method="post">
 					<div class="table-responsive">
 					<table class="table table-striped" id="domainadminstable">
 						<thead>
 						<tr>
-							<th>Username</th>
-							<th>Assigned domains</th>
-							<th>Active</th>
-							<th>Action</th>
+							<th><?=$lang['admin']['username'];?></th>
+							<th><?=$lang['admin']['admin_domains'];?></th>
+							<th><?=$lang['admin']['active'];?></th>
+							<th><?=$lang['admin']['action'];?></th>
 						</tr>
 						</thead>
 						<tbody>
 							<?php
-							$result = mysqli_query($link, "SELECT username, LOWER(GROUP_CONCAT(DISTINCT domain SEPARATOR ', ')) AS domain, CASE active WHEN 1 THEN 'Yes' ELSE 'No' END AS active FROM domain_admins WHERE username NOT IN (SELECT username FROM admin WHERE superadmin='1') GROUP BY username");
-							while ($row = mysqli_fetch_array($result)):
+							try {
+								$stmt = $pdo->query("SELECT DISTINCT
+									`username`, 
+									CASE WHEN `active`='1' THEN '".$lang['admin']['yes']."' ELSE '".$lang['admin']['no']."' END AS `active`
+										FROM `domain_admins` 
+											WHERE `username` IN (
+												SELECT `username` FROM `admin`
+													WHERE `superadmin`!='1'
+											)");
+								$rows_username = $stmt->fetchAll(PDO::FETCH_ASSOC);
+							}
+							catch(PDOException $e) {
+								$_SESSION['return'] = array(
+									'type' => 'danger',
+									'msg' => 'MySQL: '.$e
+								);
+							}
+							while ($row_user_state = array_shift($rows_username)):
 							?>
 							<tr>
-								<td><?=$row['username'];?></td>
-								<td><?=$row['domain'];?></td>
-								<td><?=$row['active'];?></td>
-								<td><a href="delete.php?domain_admin=<?=$row['username'];?>">delete</a> | 
-									<a href="edit.php?domain_admin=<?=$row['username'];?>">edit</a></td>
+								<td><?=strtolower($row_user_state['username']);?></td>
+								<td>
+								<?php
+								try {
+									$stmt = $pdo->prepare("SELECT `domain` FROM `domain_admins` WHERE `username` = :username");
+									$stmt->execute(array('username' => $row_user_state['username']));
+									$rows_domain = $stmt->fetchAll(PDO::FETCH_ASSOC);
+								}
+								catch(PDOException $e) {
+									$_SESSION['return'] = array(
+										'type' => 'danger',
+										'msg' => 'MySQL: '.$e
+									);
+								}
+								while ($row_domain = array_shift($rows_domain)) {
+									echo $row_domain['domain'].'<br />';
+								}
+								?>
+								</td>
+								<td><?=$row_user_state['active'];?></td>
+								<td><a href="delete.php?domainadmin=<?=$row_user_state['username'];?>"><?=$lang['admin']['remove'];?></a> |
+									<a href="edit.php?domainadmin=<?=$row_user_state['username'];?>"><?=$lang['admin']['edit'];?></a></td>
+								</td>
 							</tr>
+
 							<?php
 							endwhile;
 							?>
@@ -84,49 +131,59 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 					</div>
 				</form>
 				<small>
-				<h4>Add domain administrator</h4>
+				<legend><?=$lang['admin']['add_domain_admin'];?></legend>
 				<form class="form-horizontal" role="form" method="post">
 					<div class="form-group">
-						<label class="control-label col-sm-4" for="username">Username (<kbd>aA-zZ, @, ., -</kbd>):</label>
-						<div class="col-sm-8">
+						<label class="control-label col-sm-2" for="username"><?=$lang['admin']['username'];?>:</label>
+						<div class="col-sm-10">
 							<input type="text" class="form-control" name="username" id="username" required>
+							&rdsh; <kbd>a-z A-Z - _ .</kbd>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-4" for="name">Assign domains:</label>
-						<div class="col-sm-8">
-							<select title="Search domains..." style="width:100%" name="domain[]" size="5" multiple>
-				<?php
-				$resultselect = mysqli_query($link, "SELECT domain FROM domain");
-				while ($row = mysqli_fetch_array($resultselect)) {
-				echo "<option>".$row['domain']."</option>";
-				}
-				?>
+						<label class="control-label col-sm-2" for="name"><?=$lang['admin']['admin_domains'];?>:</label>
+						<div class="col-sm-10">
+							<select title="<?=$lang['admin']['search_domain_da'];?>" style="width:100%" name="domain[]" size="5" multiple>
+							<?php
+							try {
+								$stmt = $pdo->query("SELECT domain FROM domain");
+								$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+							}
+							catch(PDOException $e) {
+								$_SESSION['return'] = array(
+									'type' => 'danger',
+									'msg' => 'MySQL: '.$e
+								);
+							}
+							while ($row = array_shift($rows)) {
+								echo "<option>".$row['domain']."</option>";
+							}
+							?>
 							</select>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-4" for="password">Password:</label>
-						<div class="col-sm-8">
+						<label class="control-label col-sm-2" for="password"><?=$lang['admin']['password'];?>:</label>
+						<div class="col-sm-10">
 						<input type="password" class="form-control" name="password" id="password" placeholder="">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-4" for="password2">Password (repeat):</label>
-						<div class="col-sm-8">
+						<label class="control-label col-sm-2" for="password2"><?=$lang['admin']['password_repeat'];?>:</label>
+						<div class="col-sm-10">
 						<input type="password" class="form-control" name="password2" id="password2" placeholder="">
 						</div>
 					</div>
 					<div class="form-group">
-						<div class="col-sm-offset-4 col-sm-8">
+						<div class="col-sm-offset-2 col-sm-10">
 							<div class="checkbox">
-							<label><input type="checkbox" name="active" checked> Active</label>
+							<label><input type="checkbox" name="active" checked> <?=$lang['admin']['active'];?></label>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<div class="col-sm-offset-0 col-sm-8">
-							<button type="submit" name="trigger_add_domain_admin" class="btn btn-default">Add domain admin</button>
+						<div class="col-sm-offset-2 col-sm-10">
+							<button type="submit" name="trigger_add_domain_admin" class="btn btn-default"><?=$lang['admin']['add'];?></button>
 						</div>
 					</div>
 				</form>
@@ -136,138 +193,126 @@ $_SESSION['return_to'] = basename($_SERVER['PHP_SELF']);
 	</div>
 </div>
 
-<h4><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Configuration</h4>
+<h4><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> <?=$lang['admin']['configuration'];?></h4>
 <div class="panel-group" id="accordion_config">
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseBackup"><a style="cursor:pointer;" class="accordion-toggle">Backup mail</a></div>
-<div id="collapseBackup" class="panel-collapse collapse in">
+<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseRestrictions">
+	<span class="accordion-toggle"><?=$lang['admin']['restrictions'];?></span>
+</div>
+<div id="collapseRestrictions" class="panel-collapse collapse">
 <div class="panel-body">
-<form class="form-horizontal" role="form" method="post">
-	<div class="form-group">
-		<label class="control-label col-sm-4" for="location">Location (<kbd>aA-zZ, 0-9, -, _, /</kbd>)<small>, will be created if missing</small>:</label>
-		<div class="col-sm-8">
-			<input type="text" class="form-control" name="location" id="location" value="<?=return_mailcow_config("backup_location");?>">
-		</div>
-	</div>
-	<div class="form-group">
-		<label class="control-label col-sm-4" for="runtime">Runtime:</label>
-		<div class="col-sm-8">
-			<select title="Select a runtime..." style="width:50%" name="runtime">
-				<option <?php if (return_mailcow_config("backup_runtime") == "hourly") { echo "selected"; } ?>>hourly</option>
-				<option <?php if (return_mailcow_config("backup_runtime") == "daily") { echo "selected"; } ?>>daily</option>
-				<option <?php if (return_mailcow_config("backup_runtime") == "weekly") { echo "selected"; } ?>>weekly</option>
-				<option <?php if (return_mailcow_config("backup_runtime") == "monthly") { echo "selected"; } ?>>monthly</option>
-			</select>
-		</div>
-	</div>
-	<div class="form-group">
-		<label class="control-label col-sm-4" for="mailboxes[]">Select mailbox(es):</label>
-		<div class="col-sm-8">
-			<select data-placeholder="Search users..." style="width:100%" name="mailboxes[]" multiple>
+<p class="help-block"><?=$lang['admin']['r_info'];?></p>
 <?php
-$resultselect = mysqli_query($link, "SELECT username FROM mailbox");
-while ($row = mysqli_fetch_array($resultselect)) {
-	if (strpos(file_get_contents($MC_MBOX_BACKUP), $row['username'])) {
-		echo "<option selected>".$row['username']."</option>";
+$srr_values_active = return_mailcow_config("srr")['active'];
+$srr_values_inactive = return_mailcow_config("srr")['inactive'];
+?>
+	<form class="form-horizontal" id="srr_form" role="form" method="post">
+		<div class="form-group">
+			<label class="control-label col-sm-2" for="location"><?=$lang['admin']['rr'];?></label>
+			<div class="col-sm-10">
+				<ul id="srr-sortable-active list-group">
+					<li class="ui-state-default list-group-item list-group-item-success list-heading">&lrarr; <?=$lang['admin']['r_active'];?></li>
+<?php
+foreach($srr_values_active as $srr_value) {
+	if (!in_array($srr_value, $GLOBALS['VALID_SRR']))  {
+?>
+					<li class="ui-state-default ui-state-disabled list-group-item" data-value="<?php echo $srr_value; ?>"><?php echo $srr_value; ?></li>
+<?php
 	}
 	else {
-		echo "<option>".$row['username']."</option>";
+?>
+					<li class="ui-state-default list-group-item" data-value="<?php echo $srr_value; ?>"><?php echo $srr_value; ?></li>
+<?php
 	}
 }
 ?>
-			</select>
-		</div>
-	</div>
-	<div class="clearfix"></div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="use_backup" <?php if (return_mailcow_config("backup_active") == "on") { echo "checked"; } ?>> Use backup function</label>
-			</div>
-		</div>
-	</div>
-	<div class="clearfix"></div>
-	<div class="form-group">
-	<input type="hidden" name="trigger_backup">
-		<div class="col-sm-8">
-			<button type="submit" class="btn btn-default">Save changes</button>
-		</div>
-	</div>
-</form>
-</div>
-</div>
-</div>
-
-<div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseSrr"><a style="cursor:pointer;" class="accordion-toggle">Postfix restrictions</a></div>
-<div id="collapseSrr" class="panel-collapse collapse">
-<div class="panel-body">
+				</ul>
+				<ul id="srr-sortable-inactive list-group">
+					<li class="ui-state-default list-group-item list-group-item-warning list-heading">&lrarr; <?=$lang['admin']['r_inactive'];?></li>
 <?php
-$srr_values = return_mailcow_config("srr");
+foreach($srr_values_inactive as $srr_value) {
 ?>
-<form class="form-horizontal" role="form" method="post">
-	<div class="form-group">
-		<label class="control-label col-sm-4" for="location">Recipient restrictions</label>
-		<div class="col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="reject_invalid_helo_hostname" <?php if (preg_match('/reject_invalid_helo_hostname/', $srr_values)) { echo "checked"; } ?>> Reject invalid HELO hostnames <b>(reject_invalid_helo_hostname)</b></label>
+					<li class="ui-state-default list-group-item" data-value="<?php echo $srr_value; ?>"><?php echo $srr_value; ?></li>
+<?php
+}
+?>
+				</ul>
 			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="reject_unknown_helo_hostname" <?php if (preg_match('/reject_unknown_helo_hostname/', $srr_values)) { echo "checked"; } ?>> Reject unknown HELO hostname (no MX- or A-Record) <b>(reject_unknown_helo_hostname)</b></label>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" name="srr" class="btn btn-default"><?=$lang['admin']['save'];?></button>
+				<button type="submit" name="reset-srr" class="btn btn-primary"><?=$lang['admin']['reset_defaults'];?></button>
 			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="reject_unknown_reverse_client_hostname" <?php if (preg_match('/reject_unknown_reverse_client_hostname/', $srr_values)) { echo "checked"; } ?>> Reject when the client IP address has no address -> name mapping (missing/invalid PTR check) <b>(reject_unknown_reverse_client_hostname)</b></label>
+	</form>
+<?php
+$ssr_values_active = return_mailcow_config("ssr")['active'];
+$ssr_values_inactive = return_mailcow_config("ssr")['inactive'];
+?>
+	<form class="form-horizontal" id="ssr_form" role="form" method="post">
+		<div class="form-group">
+			<label class="control-label col-sm-2" for="location"><?=$lang['admin']['sr'];?></label>
+			<div class="col-sm-10">
+				<ul id="ssr-sortable-active list-group">
+					<li class="ui-state-default list-group-item list-group-item-success list-heading">&lrarr; <?=$lang['admin']['r_active'];?></li>
+<?php
+foreach($ssr_values_active as $ssr_value) {
+	if (!in_array($ssr_value, $GLOBALS['VALID_SSR']))  {
+?>
+					<li class="ui-state-default ui-state-disabled list-group-item" data-value="<?php echo $ssr_value; ?>"><?php echo $ssr_value; ?></li>
+<?php
+	}
+	else {
+?>
+					<li class="ui-state-default list-group-item" data-value="<?php echo $ssr_value; ?>"><?php echo $ssr_value; ?></li>
+<?php
+	}
+}
+?>
+				</ul>
+				<ul id="ssr-sortable-inactive list-group">
+					<li class="ui-state-default list-group-item list-group-item-warning list-heading">&lrarr; <?=$lang['admin']['r_inactive'];?></li>
+<?php
+foreach($ssr_values_inactive as $ssr_value) {
+?>
+					<li class="ui-state-default list-group-item" data-value="<?php echo $ssr_value; ?>"><?php echo $ssr_value; ?></li>
+<?php
+}
+?>
+				</ul>
 			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="reject_unknown_client_hostname" <?php if (preg_match('/reject_unknown_client_hostname/', $srr_values)) { echo "checked"; } ?>> Reject when the client IP address has no address -> name mapping and/or returned name does not match the IP (exact PTR match check) <b>(reject_unknown_client_hostname)</b></label>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" name="ssr" class="btn btn-default"><?=$lang['admin']['save'];?></button>
+				<button type="submit" name="reset-ssr" class="btn btn-primary"><?=$lang['admin']['reset_defaults'];?></button>
 			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="reject_non_fqdn_helo_hostname" <?php if (preg_match('/reject_non_fqdn_helo_hostname/', $srr_values)) { echo "checked"; } ?>> Reject when HELO hostname is not a FQDN <b>(reject_non_fqdn_helo_hostname)</b></label>
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="z1_greylisting" <?php if (preg_match('/z1_greylisting/', $srr_values)) { echo "checked"; } ?>> Use greylisting for unauthenticated, unknown and not whitelisted senders</label>
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-8">
-			<button type="submit" name="srr" class="btn btn-default">Save changes</button>
-		</div>
-	</div>
-</form>
+	</form>
 </div>
 </div>
 </div>
 
 
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapsePubFolders"><a style="cursor:pointer;" class="accordion-toggle">Public folders</a></div>
+<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapsePubFolders">
+	<span class="accordion-toggle"><?=$lang['admin']['public_folders'];?></span>
+</div>
 <div id="collapsePubFolders" class="panel-collapse collapse">
 <div class="panel-body">
-<p>A namespace "Public" is created. Belows public folder name indicates the name of the first auto-created mailbox within this namespace.</p>
+<p><?=$lang['admin']['public_folders_text'];?></p>
 <form class="form-horizontal" role="form" method="post">
 	<div class="form-group">
-		<label class="control-label col-sm-4" for="location">Folder name <small>(alphanumeric)</small>:</label>
+		<div class="col-sm-offset-4 col-sm-8">
+			<div class="checkbox">
+			<label><input type="checkbox" name="use_public_folder" <?=return_mailcow_config("public_folder_status");?>> <?=$lang['admin']['public_folder_enable'];?></label>
+			</div>
+			<small><?=$lang['admin']['public_folder_enable_text'];?></small>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="control-label col-sm-4" for="location"><?=$lang['admin']['public_folder_name'];?>:</label>
 		<div class="col-sm-8">
 		<input type="text" class="form-control" name="public_folder_name" id="public_folder_name" value="<?=return_mailcow_config("public_folder_name");?>">
 		</div>
@@ -275,23 +320,15 @@ $srr_values = return_mailcow_config("srr");
 	<div class="form-group">
 		<div class="col-sm-offset-4 col-sm-8">
 			<div class="checkbox">
-			<label><input type="checkbox" name="use_public_folder" <?=return_mailcow_config("public_folder_status");?>> Enable public folder</label>
+			<label><input type="checkbox" name="public_folder_pvt" <?=return_mailcow_config("public_folder_pvt");?>> <?=$lang['admin']['public_folder_pusf'];?></label>
 			</div>
-			<small>Toggling this option does not delete mail in any public folder.</small>
-		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-4 col-sm-8">
-			<div class="checkbox">
-			<label><input type="checkbox" name="public_folder_pvt" <?=return_mailcow_config("public_folder_pvt");?>> Enable per-user seen flag</label>
-			</div>
-			<small>A "per-user seen flag"-enabled system will not mark a mail as read for User B, when User A has seen it, but User B did not.</small>
+			<small><?=$lang['admin']['public_folder_pusf_text'];?></small>
 		</div>
 	</div>
 	<div class="form-group">
 	<input type="hidden" name="trigger_public_folder">
 		<div class="col-sm-8">
-			<button type="submit" class="btn btn-default">Save changes</button>
+			<button type="submit" class="btn btn-default"><?=$lang['admin']['save'];?></button>
 		</div>
 	</div>
 </form>
@@ -300,21 +337,23 @@ $srr_values = return_mailcow_config("srr");
 </div>
 
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapsePrivacy"><a style="cursor:pointer;" class="accordion-toggle">Privacy</a></div>
+<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapsePrivacy">
+	<span class="accordion-toggle"><?=$lang['admin']['privacy'];?></span>
+</div>
 <div id="collapsePrivacy" class="panel-collapse collapse">
 <div class="panel-body">
-<p>This option enables a PCRE table to remove "User-Agent", "X-Enigmail", "X-Mailer", "X-Originating-IP" and replaces "Received: from" headers with localhost/127.0.0.1.</p>
+<p><?=$lang['admin']['privacy_text'];?></p>
 <form class="form-horizontal" role="form" method="post">
 	<div class="form-group">
 		<div class="col-sm-8">
 			<div class="checkbox">
-				<label><input name="anonymize" type="checkbox" <?=return_mailcow_config("anonymize");?>> Anonymize outgoing mail</label>
+				<label><input name="anonymize" type="checkbox" <?=return_mailcow_config("anonymize");?>> <?=$lang['admin']['privacy_anon_mail'];?></label>
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-sm-8">
-			<button type="submit" name="trigger_anonymize" class="btn btn-default">Apply</button>
+			<button type="submit" name="trigger_anonymize" class="btn btn-default"><?=$lang['admin']['save'];?></button>
 		</div>
 	</div>
 </form>
@@ -323,41 +362,74 @@ $srr_values = return_mailcow_config("srr");
 </div>
 
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseDKIM"><a style="cursor:pointer;" class="accordion-toggle">DKIM signing</a></div>
+<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseDKIM">
+	<span class="accordion-toggle"><?=$lang['admin']['dkim_keys'];?></span>
+</div>
 <div id="collapseDKIM" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Default behaviour is to sign with relaxed header and body canonicalization algorithm.</p>
-<h4>Active keys</h4>
-<?php
-opendkim_table();
-?>
-<h4>Add new key</h4>
-<form class="form-inline" role="form" method="post">
-	<div class="form-group">
-		<label for="dkim_domain">Domain</label>
-		<input class="form-control" id="dkim_domain" name="dkim_domain" placeholder="example.org">
-	</div>
-	<div class="form-group">
-		<label for="dkim_selector">Selector</label>
-		<input class="form-control" id="dkim_selector" name="dkim_selector" placeholder="default">
-	</div>
-	<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> Add</button>
-</form>
+	<?php
+	$dnstxt_folder	= scandir($GLOBALS["MC_ODKIM_TXT"]);
+	$dnstxt_files	= array_diff($dnstxt_folder, array('.', '..'));
+	foreach($dnstxt_files as $file) {
+		$str = file_get_contents($GLOBALS["MC_ODKIM_TXT"]."/".$file);
+		$str = preg_replace('/\r|\t|\n/', '', $str);
+		preg_match('/\(.*\)/im', $str, $matches);
+		if(isset($matches[0])) {
+			$str = str_replace(array(' ', '"', '(', ')'), '', $matches[0]);
+		}
+	?>
+		<div class="row">
+			<div class="col-xs-2">
+				<p>Domain: <strong><?=explode("_", $file)[1];?></strong> (<?=explode("_", $file)[0];?>._domainkey)</p>
+			</div>
+			<div class="col-xs-9">
+				<pre><?=$str;?></pre>
+			</div>
+			<div class="col-xs-1">
+				<form class="form-inline" role="form" method="post">
+				<a href="#" onclick="$(this).closest('form').submit()"><span class="glyphicon glyphicon-remove-circle"></span></a>
+				<input type="hidden" name="delete_dkim_record" value="<?=$file;?>">
+				</form>
+			</div>
+		</div>
+	<?php
+	}
+	?>
+	<legend><?=$lang['admin']['dkim_add_key'];?></legend>
+	<form class="form-inline" role="form" method="post">
+		<div class="form-group">
+			<label for="dkim_domain">Domain</label>
+			<input class="form-control" id="dkim_domain" name="dkim_domain" placeholder="example.org" required>
+		</div>
+		<div class="form-group">
+			<label for="dkim_selector">Selector</label>
+			<input class="form-control" id="dkim_selector" name="dkim_selector" value="default" required>
+		</div>
+		<div class="form-group">
+			<select class="form-control" id="dkim_key_size" name="dkim_key_size" title="<?=$lang['admin']['dkim_key_length'];?>" required>
+				<option>1024</option>
+				<option>2048</option>
+			</select>
+		</div>
+		<button type="submit" name="add_dkim_record" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> <?=$lang['admin']['add'];?></button>
+	</form>
 </div>
 </div>
 </div>
 
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseMsgSize"><a style="cursor:pointer;" class="accordion-toggle">Message size</a></div>
+<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_config" data-target="#collapseMsgSize">
+	<span class="accordion-toggle"><?=$lang['admin']['msg_size'];?></span>
+</div>
 <div id="collapseMsgSize" class="panel-collapse collapse">
 <div class="panel-body">
 <form class="form-inline" method="post">
-	<p>Current message size limitation: <strong><?=return_mailcow_config("maxmsgsize");?>MB</strong></p>
-	<p>This changes your webservers and Postfix configuration. Services will be reloaded.</p>
+	<p><?=$lang['admin']['msg_size_limit'];?>: <strong><?=return_mailcow_config("maxmsgsize");?>MB</strong></p>
+	<p><?=$lang['admin']['msg_size_limit_details'];?></p>
 	<div class="form-group">
-		<input type="number" class="form-control" id="maxmsgsize" name="maxmsgsize" placeholder="in MB" min="1" max="250">
+		<input type="number" class="form-control" id="maxmsgsize" name="maxmsgsize" placeholder="in MB" min="1" max="250" required>
 	</div>
-	<button type="submit" class="btn btn-default">Set</button>
+	<button type="submit" class="btn btn-default"><?=$lang['admin']['save'];?></button>
 </form>
 </div>
 </div>
@@ -365,91 +437,59 @@ opendkim_table();
 
 </div>
 
-<h4><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Maintenance</h4>
+<h4><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> <?=$lang['admin']['maintenance'];?></h4>
 <div class="panel-group" id="accordion_maint">
 <div class="panel panel-default">
-<div class="panel-heading" data-toggle="collapse" data-parent="#accordion_maint" data-target="#collapseSysinfo"><a style="cursor:pointer;" class="accordion-toggle">System Information</a></div>
-<div id="collapseSysinfo" class="panel-collapse collapse in">
-<div class="panel-body">
-<p>This is a very simple system information function. Please be aware that a high RAM usage is what you want on a server.</p>
-<div class="row">
-	<div class="col-md-6">
-		<h4>Disk usage (/var/vmail) - <?=formatBytes(disk_free_space('/var/vmail'))?> free (<?=formatBytes(disk_total_space('/var/vmail'))?> total)</h4>
-		<div class="progress">
-		  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="<?php echo_sys_info("maildisk");?>"
-		  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo_sys_info("maildisk");?>%">
-		  </div>
+	<div style="cursor:pointer;" class="panel-heading" data-toggle="collapse" data-parent="#accordion_maint" data-target="#collapseSysinfo">
+		<span class="accordion-toggle"><?=$lang['admin']['sys_info'];?></span>
+	</div>
+	<div id="collapseSysinfo" class="panel-collapse collapse">
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-md-6">
+				<legend><span class="glyphicon glyphicon-hdd" data-toggle="tooltip" title="/var/vmail" aria-hidden="true"></span> Disk <?=formatBytes(disk_total_space('/var/vmail')-disk_free_space("/var/vmail"));?> / <?=formatBytes(disk_total_space('/var/vmail'))?></legend>
+				<div class="progress">
+				  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="<?php echo sys_info('vmail_percentage');?>"
+				  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo sys_info('vmail_percentage');?>%">
+				  </div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<legend><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> RAM <?=formatBytes(sys_info('ram')['used']);?> / <?=formatBytes(sys_info('ram')['total']);?></legend>
+				<div class="progress">
+				  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="<?php echo sys_info('ram')['used_percent'];?>"
+				  aria-valuemin="0" aria-valuemax="100" style="width:<?=sys_info('ram')['used_percent'];?>%">
+				  </div>
+				</div>
+			</div>
 		</div>
+		<legend>Postqueue</legend>
+			<pre><?php echo sys_info("mailq");?></pre>
+		<legend>Pflogsumm <code>/var/log/mail.log</code></legend>
+			<textarea rows="20" style="font-family:monospace;font-size:9pt;width:100%;"><?php echo sys_info("pflog");?></textarea>
+			<p><span class="glyphicon glyphicon-time" aria-hidden="true"></span> <?=round(abs(date('U') - filemtime($PFLOG)) / 60,0). " min.";?></p>
+			<form method="post">
+				<div class="form-group">
+					<input type="hidden" name="pflog_renew" value="1">
+					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Pflogsumm</button>
+				</div>
+			</form>
+		<legend>Mailgraph</legend>
+			<?=sys_info("mailgraph");?>
 	</div>
-	<div class="col-md-6">
-		<h4>RAM usage - <?php echo_sys_info("ram");?>%</h4>
-		<div class="progress">
-		  <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="<?php echo_sys_info("ram");?>"
-		  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo_sys_info("ram");?>%">
-		  </div>
-		</div>
 	</div>
 </div>
-<h4>Mail queue</h4>
-<pre>
-<?php echo_sys_info("mailq");?>
-</pre>
-<h4>Pflogsumm</h4>
-<textarea rows="20" style="font-family:monospace;font-size:9pt;width:100%;">
-<?php echo_sys_info("pflog");?>
-</textarea>
-<form method="post">
-	<div class="form-group">
-		<input type="hidden" name="pflog_renew" value="1">
-		<button type="submit" class="btn btn-default">Renew Pflogsumm</button>
-	</div>
-</form>
 </div>
-</div>
-</div>
-
 <?php
 }
-elseif (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes" && $_SESSION['mailcow_cc_role'] == "domainadmin") {
-header('Location: mailbox.php');
-die("Permission denied");
-}
-elseif (isset($_SESSION['mailcow_cc_loggedin']) && $_SESSION['mailcow_cc_loggedin'] == "yes" && $_SESSION['mailcow_cc_role'] == "user") {
-header('Location: user.php');
-die("Permission denied");
-} else {
-if (!function_exists('exec') || !function_exists('shell_exec')):
-?>
-<div class="alert alert-danger">Please enable "exec" and "shell_exec" PHP functions.</div>
-<?php
-endif;
-?>
-<div class="panel panel-default">
-<div class="panel-heading">Login</div>
-<div class="panel-body">
-<form method="post">
-	<div class="form-group">
-		<label for="login_user">Username / Email address:</label>
-		<input name="login_user" autocorrect="off" autocapitalize="none" type="name" id="login_user" class="form-control" required autofocus>
-	</div>
-	<div class="form-group">
-		<label for="login_user">Password:</label>
-		<input name="pass_user" type="password" id="pass_user" class="form-control" required>
-	</div>
-	<button type="submit" class="btn btn-sm btn-success" value="Login">Login</button>
-	<a class="btn btn-sm btn-primary" href="/rc">Webmail</a>
-	<hr>
-	<p><strong>Hint:</strong> Run "mc_resetadmin" from a shell to reset the password.</p>
-</form>
-</div>
-</div>
-
-<?php
+else {
+	header('Location: /');
+	die("Permission denied");
 }
 ?>
-<br />
-<p><b><a href="../">&#8592; go back</a></b></p>
 </div> <!-- /container -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" integrity="sha384-YWP9O4NjmcGo4oEJFXvvYSEzuHIvey+LbXkBNJ1Kd0yfugEZN9NCQNpRYBVC1RvA" crossorigin="anonymous"></script>
+<script src="js/admin.js"></script>
 <?php
 require_once("inc/footer.inc.php");
 ?>

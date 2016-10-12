@@ -1,79 +1,66 @@
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.3.0/js/ripples.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.3.0/js/material.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/js/bootstrap-select.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/js/bootstrap-switch.min.js" integrity="sha384-QIv8AGAxdI0cTHbmvoLkNuELOU7DQoz9LACnXQ61JsVJll396XlhlYsimV/19bJr" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.0.2/bootstrap-slider.min.js" integrity="sha384-zdPTsjljZsv2x02Dh9tJkwW1pVC3fUT0N1eWPzxmKQ5KiUPgE7I8L/Zvwq7624Ew" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.9.4/js/bootstrap-select.js" integrity="sha384-EW/AEsB10NrX7B55CM1thFvSw6+KfMAvsUYrqudLjOIXZUKQ0nJbQuiXAcZA/dfI" crossorigin="anonymous"></script>
 <script>
+// Select language and reopen active URL without POST
+function setLang(sel) {
+	$.post( "<?=$_SERVER['REQUEST_URI'];?>", {lang: sel} );
+	window.location.href = window.location.pathname + window.location.search;
+}
+
 $(document).ready(function() {
-	$('select').selectpicker();
-});
-var toValidate = $('#imap_host, #imap_username, #imap_password'),
-valid = false;
-toValidate.keyup(function () {
-	if ($(this).val().length > 0) {
-		$(this).data('valid', true);
-	} else {
-		$(this).data('valid', false);
-	}
-	toValidate.each(function () {
-		if ($(this).data('valid') == true) {
-			valid = true;
+	// Hide alerts after n seconds
+	$("#alert-fade").fadeTo(7000, 500).slideUp(500, function(){
+		$("#alert-fade").alert('close');
+	});
+	
+	// Disable submit after submitting form
+	$('form').submit(function() {
+		if ($('form button[type="submit"]').data('submitted') == '1') {
+			return false;
 		} else {
-			valid = false;
+			$(this).find('button[type="submit"]').first().text('<?=$lang['footer']['loading'];?>');
+			$('form button[type="submit"]').attr('data-submitted', '1');
+			function disableF5(e) { if ((e.which || e.keyCode) == 116 || (e.which || e.keyCode) == 82) e.preventDefault(); };
+			$(document).on("keydown", disableF5);
 		}
 	});
-	if (valid === true) {
-		$('button[type=submit]').prop('disabled', false);
-	} else {
-		$('button[type=submit]').prop('disabled', true);        
-	}
+
+	// IE fix to hide scrollbars when table body is empty
+	$('tbody').filter(function (index) { 
+		return $(this).children().length < 1; 
+	}).remove();
+
+	// Init Bootstrap Selectpicker
+	$('select').selectpicker();
+
+	// Collapse last active panel
+	<?php
+	if (isset($_SESSION['last_expanded'])):
+	?>
+		$('#<?=$_SESSION['last_expanded'];?>').collapse('toggle');
+		<?php
+		unset($_SESSION['last_expanded']);
+	endif;
+	?>
 });
-(function(){
-	'use strict';
-	var $ = jQuery;
-	$.fn.extend({
-		filterTable: function(){
-			return this.each(function(){
-				$(this).on('keyup', function(e){
-					$('.filterTable_no_results').remove();
-					var $this = $(this),
-                        search = $this.val().toLowerCase(),
-                        target = $this.attr('data-filters'),
-                        $target = $(target),
-                        $rows = $target.find('tbody tr');
-					if(search == '') {
-						$rows.show();
-					} else {
-						$rows.each(function(){
-							var $this = $(this);
-							$this.text().toLowerCase().indexOf(search) === -1 ? $this.hide() : $this.show();
-						})
-						if($target.find('tbody tr:visible').size() === 0) {
-							var col_count = $target.find('tr').first().find('td').size();
-							var no_results = $('<tr class="filterTable_no_results"><td colspan="'+col_count+'">No results found</td></tr>')
-							$target.find('tbody').append(no_results);
-						}
-					}
-				});
-			});
-		}
-	});
-	$('[data-action="filter"]').filterTable();
-})(jQuery);
-$(function(){
-	$('[data-action="filter"]').filterTable();
-	$('.container').on('click', '.panel-heading span.filter', function(e){
-		var $this = $(this),
-		$panel = $this.parents('.panel');
-		$panel.find('.panel-body').slideToggle("fast");
-		if($this.css('display') != 'none') {
-			$panel.find('.panel-body input').focus();
-		}
-	});
-	$('[data-toggle="tooltip"]').tooltip();
-})
 </script>
+<?php
+if (isset($_SESSION['return'])):
+?>
+<div class="container">
+	<div style="position:fixed;bottom:8px;right:25px;min-width:300px;max-width:350px;z-index:2000">
+		<div <?=($_SESSION['return']['type'] == 'danger') ? null : 'id="alert-fade"'?> class="alert alert-<?=$_SESSION['return']['type'];?>" role="alert">
+		<a href="#" class="close" data-dismiss="alert"> &times;</a>
+		<?=$_SESSION['return']['msg'];?>
+		</div>
+	</div>
+</div>
+<?php
+unset($_SESSION['return']);
+endif;
+?>
 </body>
 </html>
-<?php mysqli_close($link); ?>
+<?php $stmt = null; $pdo = null; ?>
